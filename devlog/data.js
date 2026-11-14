@@ -1,6 +1,7 @@
 // Devlog of the Doctor Sonrisa bot (video 07). The build agent fills it at
 // each checkpoint. Shape:
-// - project: name, kicker, oneLine (the idea in one line), repo, stack
+// - project: tab (its name on the tab, short), name, kicker, oneLine (the
+//   idea in one line), repo, stack
 //   (each piece with its role, a note such as its free limit, and its
 //   source), url (optional: shown in the fake browser around a chat).
 // - chapters: how the video groups the checkpoints; each names its ids.
@@ -21,8 +22,9 @@
 // The check results do not go here: the evals script writes evals.js.
 window.DEVLOG = {
   project: {
+    tab: "Agente",
     name: "Doctor Sonrisa",
-    kicker: "Devlog · Video 07",
+    kicker: "Video 07",
     oneLine: "Un bot que solo tiene un prompt se rompe en 30 segundos. Este se construye por capas, gratis.",
     repo: "~/Development/Claude/videos/07-doctor-sonrisa (public later: github.com/elmariodev/doctor-sonrisa)",
     url: "doctorsonrisa.example",

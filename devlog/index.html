@@ -9,15 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <!--
   Devlog of anything built for an elmariodev video (an agent, a game, a
-  tool), in the channel's brand (brand/brand.md). One tab per checkpoint:
+  tool), in the channel's brand (brand/brand.md). One sidebar entry per checkpoint:
   what was built, who built it (model, time, tokens, API cost), what broke,
   how it was fixed, and the checks with their evidence (a chat reply, a
   screenshot or a clip). Everything meant to be revealed on camera is
   blurred behind an eye button. Plus the eval matrix, the decisions and the
   runbook. The page is what the audience sees on camera: nothing on it is a
   note for Mario (his lines live in script-notes.md, not here).
-  Content: data.js (the build agent) and evals.js (the checks script).
-  Without them it shows an example; "?ejemplo=juego" shows the other one.
+  One tab per project: projects.js lists the devlog folders of a video
+  with several builds; without it, data.js (the build agent) and evals.js
+  (the checks script) next to this page are the one project; without them
+  it shows the two examples. The sidebar holds the sections of the project.
 -->
 <style>
   :root {
@@ -41,25 +43,30 @@
   .top img { width: 26px; height: 26px; }
   .top .crumb { color: var(--muted); font-family: var(--mono); }
   .top .live { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-  .examples { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-  .examples[hidden] { display: none; }
-  .mock { font: 700 11px var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  .mock[hidden] { display: none; }
+  .mock { margin-left: auto; font: 700 11px var(--mono); letter-spacing: .08em; text-transform: uppercase;
     color: var(--ink); background: var(--accent); padding: 4px 10px; border-radius: 4px; }
-  .examples a { font: 700 11px var(--mono); color: var(--muted); text-decoration: none; padding: 4px 8px;
-    border: 1px solid var(--edge); border-radius: 4px; }
-  .examples a.on { color: var(--text); border-color: var(--accent); }
-  .tabs { display: flex; gap: 4px; padding: 12px 28px; border-bottom: 1px solid var(--edge);
+  .tabs { display: flex; gap: 6px; padding: 12px 28px 0; border-bottom: 1px solid var(--edge);
     overflow-x: auto; scrollbar-width: none; position: sticky; top: 0; background: var(--ground); z-index: 5; }
-  .tabs button { flex: none; background: none; border: 1px solid transparent; border-radius: 6px;
-    padding: 5px 10px; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .tabs button { flex: none; background: none; border: 0; border-bottom: 2px solid transparent;
+    padding: 8px 14px 10px; font: 400 15px var(--display); color: var(--muted); }
   .tabs button:hover { color: var(--text); }
-  .tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); background: rgba(255,178,36,.08); }
-  .tabs .sep { width: 1px; background: var(--edge); margin: 4px 6px; flex: none; }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .layout { display: grid; grid-template-columns: 230px 1fr; }
+  .side { position: sticky; top: 50px; align-self: start; height: calc(100vh - 50px); overflow-y: auto;
+    border-right: 1px solid var(--edge); padding: 18px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .side-head { font: 700 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 14px 10px 6px; }
+  .side a { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; color: var(--muted);
+    text-decoration: none; font-size: 14px; line-height: 1.3; border: 1px solid transparent; }
+  .side a:hover { color: var(--text); background: var(--panel); }
+  .side a.on { color: var(--text); background: rgba(255,178,36,.08); border-color: rgba(255,178,36,.5); }
+  .side a.todo { opacity: .6; }
+  .side .n { font: 700 11px var(--mono); color: var(--muted); width: 14px; }
   .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; border: 1.5px solid var(--muted); }
   .dot.done { background: var(--pass); border-color: var(--pass); }
   .dot.now { background: var(--accent); border-color: var(--accent); }
 
-  main { max-width: 1240px; margin: 0 auto; padding: 28px 28px 80px; }
+  main { max-width: 1240px; width: 100%; margin: 0 auto; padding: 28px 32px 80px; min-width: 0; }
   .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 22px; }
   .label { font: 700 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
   .muted { color: var(--muted); }
@@ -97,13 +104,6 @@
   .tile { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 16px 18px; text-align: left; }
   .tile .n { font-family: var(--display); font-size: 40px; line-height: 1; }
   .tile .n small { font-size: 18px; color: var(--muted); }
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px; }
-  .step { text-align: left; background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 12px; }
-  .step:hover { border-color: var(--muted); }
-  .step .id { font: 700 11px var(--mono); color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .step .t { font-family: var(--display); font-size: 15px; margin-top: 6px; line-height: 1.2; }
-  .step.now { border-color: var(--accent); }
-  .step.todo { opacity: .55; }
   .chapters li { margin: 8px 0; }
   .chapters b { font-family: var(--display); font-weight: 400; }
   .gap { margin-top: 16px; }
@@ -177,7 +177,7 @@
   /* Matrix */
   .matrix td, .matrix th { text-align: center; }
   .matrix td:first-child, .matrix th:first-child, .matrix td:nth-child(2) { text-align: left; }
-  .cell { display: inline-flex; width: 30px; height: 30px; border-radius: 7px; align-items: center; justify-content: center;
+  .cell { text-decoration: none; display: inline-flex; width: 30px; height: 30px; border-radius: 7px; align-items: center; justify-content: center;
     font: 700 14px var(--mono); border: 0; }
   .cell.pass { background: rgba(76,195,138,.18); color: var(--pass); }
   .cell.fail { background: rgba(255,59,47,.16); color: var(--marker); }
@@ -198,6 +198,9 @@
 
   @media (max-width: 900px) {
     main { padding: 20px 16px 60px; }
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--edge); padding: 8px 12px; }
+    .side-head { display: none; } .side a { flex: none; }
     .top, .tabs { padding-left: 16px; padding-right: 16px; }
     .hero, .cp-grid, .two { grid-template-columns: 1fr; }
     .hero h1 { font-size: 40px; }
@@ -209,17 +212,19 @@
 <body>
 <header class="top">
   <img src="logo.svg" alt="">
-  <span class="crumb">Devlog /</span><b id="pname"></b><span class="live" aria-hidden="true"></span>
-  <span class="examples" id="examples" hidden>
-    <span class="mock">Datos de ejemplo</span>
-    <a href="?" data-ex="">Agente</a><a href="?ejemplo=juego" data-ex="juego">Juego</a>
-  </span>
+  <span class="crumb">Devlog /</span><b id="vname"></b><span class="live" aria-hidden="true"></span>
+  <span class="mock" id="mock" hidden>Datos de ejemplo</span>
 </header>
 <nav class="tabs" id="tabs" role="tablist"></nav>
-<main id="view"></main>
+<div class="layout">
+  <aside class="side" id="side"></aside>
+  <main id="view"></main>
+</div>
 
 <script>
-// Loads data.js and evals.js next to this page, or an example when they are missing.
+// Loads the projects: projects.js lists their devlog folders; without it,
+// data.js and evals.js next to this page are the one project; without
+// those, the two examples are shown as two projects.
 const load = (src) => new Promise((ok, ko) => {
   const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s);
 });
@@ -233,56 +238,77 @@ const F = {
 };
 const EYE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const STATE = { done: "Listo", now: "En curso", todo: "Pendiente" };
-const shown = new Set();   // keys of revealed blocks
-const picked = {};         // checkpoint id -> what the stage shows
-
-// A block blurred behind an eye until revealed. key must be unique on the page.
-const rv = (key, html, small) => `<div class="rv ${shown.has(key) ? "" : "shut"}" data-rv="${key}">
-  <div class="rv-body">${html}</div><button class="eye ${small ? "small" : ""}" data-show="${key}" aria-label="Mostrar">${EYE}<span>Mostrar</span></button></div>`;
+const shown = new Set();   // keys of revealed blocks, "<project>:<key>"
+const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
 
 (async () => {
-  const ex = new URLSearchParams(location.search).get("ejemplo") === "juego" ? "-juego" : "";
-  let example = false;
-  await load("data.js").catch(() => { example = true; return load(`data.example${ex}.js`); });
-  await load("evals.js").catch(() => load(`evals.example${ex}.js`)).catch(() => {});
-  const D = window.DEVLOG, E = window.DEVLOG_EVALS || { checks: [], runs: [] };
-  const CHECKS = E.label || "Pruebas";
-  if (example) {
-    const box = document.getElementById("examples"); box.hidden = false;
-    box.querySelectorAll("a").forEach((a) => a.classList.toggle("on", "-" + a.dataset.ex === ex || (!ex && !a.dataset.ex)));
+  const projects = [];
+  const loadProject = async (dir, suffix) => {
+    delete window.DEVLOG; delete window.DEVLOG_EVALS;
+    await load(`${dir}data${suffix}.js`);
+    await load(`${dir}evals${suffix}.js`).catch(() => {});
+    projects.push({ D: window.DEVLOG, E: window.DEVLOG_EVALS || { checks: [], runs: [] }, base: dir });
+  };
+  let video = "";
+  if (await load("projects.js").then(() => true, () => false)) {
+    video = window.DEVLOG_PROJECTS.title || "";
+    for (const p of window.DEVLOG_PROJECTS.projects) await loadProject(p.replace(/\/?$/, "/"), "");
+  } else {
+    await loadProject("", "").catch(async () => {
+      document.getElementById("mock").hidden = false;
+      await loadProject("", ".example"); await loadProject("", ".example-juego");
+      video = "Video de ejemplo";
+    });
   }
-  document.getElementById("pname").textContent = D.project.name;
-  document.title = `${D.project.name} | Devlog`;
+
+  // The project on screen: PI is its index, D its data, E its checks
+  let PI = 0, D, E, CHECKS, lastRun, BASE;
+  const use = (i) => {
+    PI = i; ({ D, E, base: BASE } = projects[i]);
+    CHECKS = E.label || "Pruebas"; lastRun = E.runs[E.runs.length - 1];
+  };
+  use(0);
+  video ||= D.project.kicker || "";
+  document.getElementById("vname").textContent = video;
+  document.title = `${video || D.project.name} | Devlog`;
+
+  const K = (k) => `${PI}:${k}`;                       // a key scoped to the project
+  const to = (sec) => `#${PI}/${sec}`;                  // the address of a section
+  const url = (src) => /^(https?:|data:|\/)/.test(src) ? src : BASE + src;
+  // A block blurred behind an eye until revealed
+  const rv = (key, html, small) => `<div class="rv ${shown.has(K(key)) ? "" : "shut"}" data-rv="${K(key)}">
+    <div class="rv-body">${html}</div><button class="eye ${small ? "small" : ""}" data-show="${K(key)}" aria-label="Mostrar">${EYE}<span>Mostrar</span></button></div>`;
 
   const runOf = (cpId) => [...E.runs].reverse().find((r) => r.checkpoint === cpId);
   const passCount = (run) => run ? E.checks.filter((c) => run.results[c.id]?.pass === true).length : null;
   const check = (id) => E.checks.find((c) => c.id === id);
-  const lastRun = E.runs[E.runs.length - 1];
   const verdict = (r) => r?.pass === true ? "pass" : r?.pass === false ? "fail" : "";
 
-  const tabs = [
+  // Tabs: one per project. Sidebar: the sections of the project on screen.
+  const nav = document.getElementById("tabs"), side = document.getElementById("side"), view = document.getElementById("view");
+  const sections = () => [
     { id: "resumen", label: "Resumen" },
-    ...D.checkpoints.map((c, i) => ({ id: c.id, label: `${i} · ${c.title}`, dot: c.status })),
-    { sep: true },
-    { id: "evals", label: "Evals" },
-    { id: "decisiones", label: "Decisiones" }, { id: "runbook", label: "Runbook" },
+    { head: "Pasos" },
+    ...D.checkpoints.map((c, i) => ({ id: c.id, label: c.title, n: i, dot: c.status })),
+    { head: "Resultados" },
+    { id: "evals", label: "Evals" }, { id: "decisiones", label: "Decisiones" }, { id: "runbook", label: "Runbook" },
   ];
-  const nav = document.getElementById("tabs");
-  nav.innerHTML = tabs.map((t) => t.sep ? `<span class="sep"></span>` :
-    `<button role="tab" data-tab="${t.id}">${t.dot ? `<span class="dot ${t.dot}"></span>` : ""}${esc(t.label)}</button>`).join("");
-  nav.addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) location.hash = b.dataset.tab; });
-
-  const view = document.getElementById("view");
-  const current = () => tabs.find((t) => t.id === location.hash.slice(1)) ? location.hash.slice(1) : "resumen";
-  const go = () => {
-    const tab = current();
-    nav.querySelectorAll("[data-tab]").forEach((b) => {
-      const on = b.dataset.tab === tab; b.setAttribute("aria-selected", on);
-      if (on) b.scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
-    const cp = D.checkpoints.find((c) => c.id === tab);
-    view.innerHTML = cp ? checkpoint(cp) : ({ resumen: overview, evals: matrix, decisiones: decisions, runbook }[tab])();
+  const where = () => {
+    const [p, sec] = location.hash.slice(1).split("/");
+    const pi = projects[+p] ? +p : 0;
+    use(pi);
+    return sec && sections().some((t) => t.id === sec) ? sec : "resumen";
   };
+  const go = () => {
+    const sec = where();
+    nav.innerHTML = projects.map((p, i) => `<button role="tab" aria-selected="${i === PI}" data-project="${i}">${esc(p.D.project.tab || p.D.project.name)}</button>`).join("");
+    side.innerHTML = sections().map((t) => t.head ? `<div class="side-head">${t.head}</div>` :
+      `<a href="${to(t.id)}" class="${t.id === sec ? "on" : ""} ${t.dot || ""}">${t.dot ? `<span class="dot ${t.dot}"></span><span class="n">${t.n}</span>` : ""}<span>${esc(t.label)}</span></a>`).join("");
+    const cp = D.checkpoints.find((c) => c.id === sec);
+    view.innerHTML = cp ? checkpoint(cp) : ({ resumen: overview, evals: matrix, decisiones: decisions, runbook }[sec])();
+    side.querySelector(".on")?.scrollIntoView({ block: "nearest" });
+  };
+  nav.addEventListener("click", (e) => { const b = e.target.closest("[data-project]"); if (b) location.hash = `#${b.dataset.project}/resumen`; });
   window.addEventListener("hashchange", () => { go(); window.scrollTo(0, 0); });
 
   // The decided decisions a checkpoint names
@@ -315,34 +341,30 @@ const rv = (key, html, small) => `<div class="rv ${shown.has(key) ? "" : "shut"}
       <section class="hero">
         <div><div class="kicker">${esc(D.project.kicker)}</div><h1>${esc(D.project.name)}</h1><p>${esc(D.project.oneLine)}</p></div>
         <div class="tiles">
-          <div class="tile"><div class="label">Checkpoints</div><div class="n">${done}<small> / ${D.checkpoints.length}</small></div></div>
+          <div class="tile"><div class="label">Pasos listos</div><div class="n">${done}<small> / ${D.checkpoints.length}</small></div></div>
           <div class="tile"><div class="label">${esc(CHECKS)} que pasan</div><div class="n">${lastRun ? passCount(lastRun) : "-"}<small> / ${E.checks.length}</small></div>
             <div class="src">${lastRun ? `run ${esc(lastRun.checkpoint)} · ${esc(lastRun.at)}` : "sin corridas"}</div></div>
         </div>
       </section>
-      <div class="steps">${D.checkpoints.map((c, i) => `
-        <button class="step ${c.status}" onclick="location.hash='${c.id}'">
-          <div class="id"><span class="dot ${c.status}"></span>CP ${i} · ${STATE[c.status]}</div>
-          <div class="t">${esc(c.title)}</div></button>`).join("")}</div>
       <div class="card"><div class="label">Todo el build, hasta ahora</div><div class="scroll-x">${builds(totals(), "total")}</div></div>
       <div class="two gap">
         <div class="card"><div class="label">Capítulos</div><ol class="chapters plain">${D.chapters.map((ch) =>
-          `<li><b>${esc(ch.title)}</b> <span class="src">${ch.checkpoints.join(", ")}</span></li>`).join("")}</ol></div>
+          `<li><b>${esc(ch.title)}</b> <span class="src">${ch.checkpoints.map((id) => `<a href="${to(id)}">${id}</a>`).join(", ")}</span></li>`).join("")}</ol></div>
         <div class="card"><div class="label">El stack</div><table>${D.project.stack.map((s) =>
           `<tr><td><b>${esc(s.name)}</b><div class="muted">${esc(s.role)}</div></td><td>${esc(s.note || "")}<div class="src">${esc(s.source || "")}</div></td></tr>`).join("")}</table></div>
       </div>`;
   }
 
   function checkpoint(c) {
-    const i = D.checkpoints.indexOf(c), run = runOf(c.id);
+    const i = D.checkpoints.indexOf(c), run = runOf(c.id), pk = K(c.id);
     const ch = D.chapters.find((x) => x.checkpoints.includes(c.id));
-    if (!picked[c.id]) picked[c.id] = run && c.hero ? { check: c.hero } : c.media?.length ? { media: 0 } : run ? { check: E.checks[0]?.id } : {};
+    if (!picked[pk]) picked[pk] = run && c.hero ? { check: c.hero } : c.media?.length ? { media: 0 } : run ? { check: E.checks[0]?.id } : {};
     const list = (items) => items?.length ? `<ul class="plain">${items.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : `<p class="empty">Todavía nada.</p>`;
     const broke = c.broke?.length ? c.broke.map((b) => `<p>${b.check ? `<span class="tag">${esc(b.check)}</span>` : ""}${esc(b.text)}</p>`).join("") : `<p class="empty">Nada todavía.</p>`;
     const n = passCount(run);
     return `
       <div class="cp-head">
-        <span class="badge">CP ${String(i).padStart(2, "0")}</span><h1>${esc(c.title)}</h1>
+        <span class="badge">PASO ${String(i).padStart(2, "0")}</span><h1>${esc(c.title)}</h1>
         <span class="meta">${ch ? `Capítulo ${ch.n}` : ""}${c.date ? ` · ${esc(c.date)}` : ""}${c.commit ? ` · tag ${esc(c.id)} · ${esc(c.commit)}` : ""}</span>
         <span class="state"><span class="dot ${c.status}"></span>${STATE[c.status]}</span>
       </div>
@@ -350,16 +372,16 @@ const rv = (key, html, small) => `<div class="rv ${shown.has(key) ? "" : "shut"}
         <div>
           <div class="stage-head">
             <div><span class="label" style="margin:0">${esc(CHECKS)}</span>
-              <span class="src">${run ? ` run ${esc(run.at)}${run.model ? ` · ${esc(run.model)}` : ""}` : " sin corrida en este checkpoint"}</span></div>
+              <span class="src">${run ? ` run ${esc(run.at)}${run.model ? ` · ${esc(run.model)}` : ""}` : " sin corrida en este paso"}</span></div>
             ${run ? rv(`score-${c.id}`, `<span class="verdict">${n} / ${E.checks.length} pasan</span>`, true) : ""}
           </div>
           ${stage(c)}
-          ${run ? `<div class="chips">${E.checks.map((x) => { const v = shown.has(`res-${c.id}-${x.id}`) ? verdict(run.results[x.id]) : "";
-            return `<button class="chip ${v}" aria-pressed="${picked[c.id].check === x.id}" data-check="${x.id}">
+          ${run ? `<div class="chips">${E.checks.map((x) => { const v = shown.has(K(`res-${c.id}-${x.id}`)) ? verdict(run.results[x.id]) : "";
+            return `<button class="chip ${v}" aria-pressed="${picked[pk].check === x.id}" data-check="${x.id}">
               <span class="chip-id">${esc(x.id)}${x.who ? ` · ${esc(x.who)}` : ""}<i>${v === "pass" ? "✓" : v === "fail" ? "✗" : ""}</i></span>
               <span class="chip-t">${esc(x.text)}</span></button>`; }).join("")}</div>` : ""}
-          ${c.media?.length ? `<div class="thumbs">${c.media.map((m, k) => `<button aria-pressed="${picked[c.id].media === k}" data-media="${k}"
-              style="background-image:url('${m.kind === "image" ? esc(m.src) : ""}')">${m.kind === "video" ? "▶ clip" : ""}</button>`).join("")}</div>` : ""}
+          ${c.media?.length ? `<div class="thumbs">${c.media.map((m, k) => `<button aria-pressed="${picked[pk].media === k}" data-media="${k}"
+              style="background-image:url('${m.kind === "image" ? esc(url(m.src)) : ""}')">${m.kind === "video" ? "▶ clip" : ""}</button>`).join("")}</div>` : ""}
           <div class="caption">${caption(c)}</div>
         </div>
         <div>
@@ -380,20 +402,20 @@ const rv = (key, html, small) => `<div class="rv ${shown.has(key) ? "" : "shut"}
   }
 
   function caption(c) {
-    const p = picked[c.id];
+    const p = picked[K(c.id)];
     if (p.media !== undefined) return esc(c.media[p.media]?.caption || "");
     const x = check(p.check); return x ? `<b>Se espera:</b> ${esc(x.expect)}` : "";
   }
 
   // The stage shows a media file, or the evidence of one check: a chat, an image or a clip
   function stage(c) {
-    const p = picked[c.id];
+    const p = picked[K(c.id)];
     const file = (src, kind, alt) => kind === "video" || /\.(webm|mp4|mov)$/i.test(src)
-      ? `<video src="${esc(src)}" controls muted playsinline></video>` : `<img src="${esc(src)}" alt="${esc(alt || "")}">`;
+      ? `<video src="${esc(url(src))}" controls muted playsinline></video>` : `<img src="${esc(url(src))}" alt="${esc(alt || "")}">`;
     if (p.media !== undefined) { const m = c.media[p.media]; return `<div class="stage">${file(m.src, m.kind, m.caption)}</div>`; }
     const x = check(p.check), r = runOf(c.id)?.results[x?.id], key = `res-${c.id}-${x?.id}`, v = verdict(r);
     if (!x) return `<div class="stage"><div class="note muted">Sin evidencia todavía.</div></div>`;
-    const stamp = v && shown.has(key) ? `<div class="stamp ${v}">${v === "pass" ? "PASA" : "FALLA"}</div>` : "";
+    const stamp = v && shown.has(K(key)) ? `<div class="stamp ${v}">${v === "pass" ? "PASA" : "FALLA"}</div>` : "";
     if (r?.media) return `<div class="stage">${rv(key, file(r.media, null, x.text) + (r.note ? `<div class="over-note">${esc(r.note)}</div>` : ""))}${stamp}</div>`;
     if (r?.reply !== undefined) return `<div class="stage">
       ${D.project.url ? `<div class="bar"><i></i><i></i><i></i><span>${esc(D.project.url)}</span></div>` : ""}
@@ -404,57 +426,59 @@ const rv = (key, html, small) => `<div class="rv ${shown.has(key) ? "" : "shut"}
 
   // Evals: every check against every checkpoint; each column behind its eye
   function matrix() {
+    const open = (c) => shown.has(K(`col-${c.id}`));
     const cell = (cp, x) => { const v = verdict(runOf(cp.id)?.results[x.id]) || "none";
-      return `<td class="${shown.has(`col-${cp.id}`) || v === "none" ? "" : "shut-cell"}"><button class="cell ${v}" onclick="location.hash='${cp.id}'">${v === "pass" ? "✓" : v === "fail" ? "✗" : "·"}</button></td>`; };
-    return `<h1 class="sec-title">Evals</h1><p class="sec-sub">Las mismas ${esc(CHECKS.toLowerCase())} contra cada checkpoint. Cada columna es la última corrida de ese checkpoint; el ojo la muestra.</p>
+      return `<td class="${open(cp) || v === "none" ? "" : "shut-cell"}"><a class="cell ${v}" href="${to(cp.id)}">${v === "pass" ? "✓" : v === "fail" ? "✗" : "·"}</a></td>`; };
+    return `<h1 class="sec-title">Evals</h1><p class="sec-sub">Las mismas ${esc(CHECKS.toLowerCase())} contra cada paso. Cada columna es la última corrida de ese paso; el ojo la muestra.</p>
       <div class="card scroll-x"><table class="matrix"><thead><tr><th>Prueba</th><th>${E.checks.some((x) => x.who) ? "Quién" : ""}</th>${D.checkpoints.map((c, i) =>
-        `<th>CP ${i}${runOf(c.id) && !shown.has(`col-${c.id}`) ? `<br><button class="col-eye" data-show="col-${c.id}" aria-label="Mostrar CP ${i}">${EYE}</button>` : ""}</th>`).join("")}</tr></thead>
+        `<th>${i}${runOf(c.id) && !open(c) ? `<br><button class="col-eye" data-show="${K(`col-${c.id}`)}" aria-label="Mostrar paso ${i}">${EYE}</button>` : ""}</th>`).join("")}</tr></thead>
       <tbody>${E.checks.map((x) => `<tr><td>${esc(x.text)}</td><td>${x.who ? `<span class="who-tag">${esc(x.who)}</span>` : ""}</td>${D.checkpoints.map((c) => cell(c, x)).join("")}</tr>`).join("")}</tbody>
-      <tfoot><tr><td colspan="2">Pasan</td>${D.checkpoints.map((c) => { const n = passCount(runOf(c.id)); return `<td>${n === null ? "-" : shown.has(`col-${c.id}`) ? `${n}/${E.checks.length}` : "?"}</td>`; }).join("")}</tr></tfoot></table></div>`;
+      <tfoot><tr><td colspan="2">Pasan</td>${D.checkpoints.map((c) => { const n = passCount(runOf(c.id)); return `<td>${n === null ? "-" : open(c) ? `${n}/${E.checks.length}` : "?"}</td>`; }).join("")}</tr></tfoot></table></div>`;
   }
 
   function decisions() {
     return `<h1 class="sec-title">Decisiones</h1><p class="sec-sub">Lo que se decidió y por qué.</p>
       <div class="card">${D.decisions.filter((d) => d.status !== "open").map((d) => { const used = D.checkpoints.filter((c) => c.decisions?.includes(d.id));
         return `<div class="dec"><span class="mono muted">${esc(d.id)}</span><div><div>${esc(d.text)}</div>
-          <div class="why">${esc(d.why)}</div></div><div class="src" style="text-align:right">${esc(d.date)} · ${esc(d.by)}<br>${used.map((c) => `<a href="#${c.id}">${c.id}</a>`).join(" ")}</div></div>`; }).join("")}</div>`;
+          <div class="why">${esc(d.why)}</div></div><div class="src" style="text-align:right">${esc(d.date)} · ${esc(d.by)}<br>${used.map((c) => `<a href="${to(c.id)}">${c.id}</a>`).join(" ")}</div></div>`; }).join("")}</div>`;
   }
 
   function runbook() {
     return `<h1 class="sec-title">Runbook</h1><p class="sec-sub">Cómo correrlo. Repo: ${esc(D.project.repo)}</p>
-      <div class="card">${D.runbook.map((r) => `<div class="cmd"><span style="width:200px">${esc(r.label)}</span><code>${esc(r.cmd)}</code>
-        <button data-copy="${esc(r.cmd)}">copiar</button></div>`).join("")}</div>`;
+      <div class="card">${D.runbook.length ? D.runbook.map((r) => `<div class="cmd"><span style="width:200px">${esc(r.label)}</span><code>${esc(r.cmd)}</code>
+        <button data-copy="${esc(r.cmd)}">copiar</button></div>`).join("") : `<p class="empty">Todavía no.</p>`}</div>`;
   }
 
-  // Clicks: an eye reveals its block, a row or thumb picks what the stage shows
+  // Clicks: an eye reveals its block, a chip or thumb picks what the stage shows
   const rerender = () => { const y = window.scrollY; go(); window.scrollTo(0, y); };
   view.addEventListener("click", (e) => {
     const eye = e.target.closest("[data-show]");
     if (eye) { shown.add(eye.dataset.show); return rerender(); }
     const copy = e.target.closest("[data-copy]");
     if (copy) { navigator.clipboard?.writeText(copy.dataset.copy); copy.textContent = "copiado"; return; }
-    const c = D.checkpoints.find((x) => x.id === current());
+    const c = D.checkpoints.find((x) => x.id === where());
     if (!c) return;
     const m = e.target.closest("[data-media]"), x = e.target.closest("[data-check]");
-    if (m) picked[c.id] = { media: +m.dataset.media };
-    else if (x) picked[c.id] = { check: x.dataset.check };
+    if (m) picked[K(c.id)] = { media: +m.dataset.media };
+    else if (x) picked[K(c.id)] = { check: x.dataset.check };
     else return;
     rerender();
   });
-  // Keys: left and right move between tabs, R shows everything on the tab, H hides it again
+  // Keys: up and down move through the sidebar, R shows everything on screen, H hides it again
   document.addEventListener("keydown", (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const ids = tabs.filter((t) => !t.sep).map((t) => t.id), k = ids.indexOf(current());
-    const keys = () => [...view.querySelectorAll("[data-rv]")].map((n) => n.dataset.rv)
-      .concat(current() === "evals" ? D.checkpoints.map((c) => `col-${c.id}`) : []);
-    if (e.key === "ArrowRight" && k < ids.length - 1) location.hash = ids[k + 1];
-    else if (e.key === "ArrowLeft" && k > 0) location.hash = ids[k - 1];
+    const sec = where(), ids = sections().filter((t) => t.id).map((t) => t.id), k = ids.indexOf(sec);
+    if ((e.key === "ArrowDown" || e.key === "ArrowRight") && k < ids.length - 1) { e.preventDefault(); location.hash = to(ids[k + 1]); }
+    else if ((e.key === "ArrowUp" || e.key === "ArrowLeft") && k > 0) { e.preventDefault(); location.hash = to(ids[k - 1]); }
     else if (e.key.toLowerCase() === "r") {
-      const c = D.checkpoints.find((x) => x.id === current());
-      if (c) E.checks.forEach((x) => shown.add(`res-${c.id}-${x.id}`));
-      keys().forEach((key) => shown.add(key)); rerender();
+      const c = D.checkpoints.find((x) => x.id === sec);
+      if (c) E.checks.forEach((x) => shown.add(K(`res-${c.id}-${x.id}`)));
+      if (sec === "evals") D.checkpoints.forEach((c) => shown.add(K(`col-${c.id}`)));
+      view.querySelectorAll("[data-rv]").forEach((n) => shown.add(n.dataset.rv)); rerender();
     } else if (e.key.toLowerCase() === "h") {
-      [...shown].forEach((key) => { if (key.includes(current()) || key === "total" || key.startsWith("col-")) shown.delete(key); }); rerender();
+      [...shown].forEach((key) => { const [p, rest] = key.split(/:(.*)/);
+        if (+p === PI && (rest.includes(sec) || rest === "total" || (sec === "evals" && rest.startsWith("col-")))) shown.delete(key); });
+      rerender();
     }
   });
   go();
