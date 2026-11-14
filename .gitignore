@@ -1,0 +1,7 @@
+node_modules/
+.dev.vars
+.env*
+.wrangler/
+devlog/media/*.webm
+devlog/media/*.mp4
+.DS_Store
