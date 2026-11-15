@@ -66,13 +66,13 @@
   .dot.done { background: var(--pass); border-color: var(--pass); }
   .dot.now { background: var(--accent); border-color: var(--accent); }
 
-  main { max-width: 1240px; width: 100%; margin: 0 auto; padding: 28px 32px 80px; min-width: 0; }
+  main { width: 100%; padding: 28px 40px 80px; min-width: 0; }
   .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 22px; }
   .label { font: 700 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
   .muted { color: var(--muted); }
   ul.plain { margin: 0; padding-left: 18px; }
   ul.plain li { margin: 3px 0; }
-  .src { font: 11px var(--mono); color: var(--muted); }
+  .src { font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
   .empty { color: var(--muted); font-style: italic; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   table { width: 100%; border-collapse: collapse; }
@@ -105,6 +105,9 @@
   .tile .n { font-family: var(--display); font-size: 40px; line-height: 1; }
   .tile .n small { font-size: 18px; color: var(--muted); }
   .chapters li { margin: 8px 0; }
+  .stack td:first-child { width: 42%; }
+  .stack td b { white-space: nowrap; }
+  .overview-row { grid-template-columns: 1fr 1.3fr; }
   .chapters b { font-family: var(--display); font-weight: 400; }
   .gap { margin-top: 16px; }
 
@@ -198,7 +201,11 @@
 
   @media (max-width: 900px) {
     main { padding: 20px 16px 60px; }
-    .layout { grid-template-columns: 1fr; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .top { flex-wrap: wrap; }
+    .tiles { grid-template-columns: 1fr; }
+    table.builds { display: block; overflow-x: auto; }
+    .stack td b { white-space: normal; }
     .side { position: static; height: auto; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--edge); padding: 8px 12px; }
     .side-head { display: none; } .side a { flex: none; }
     .top, .tabs { padding-left: 16px; padding-right: 16px; }
@@ -347,10 +354,10 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
         </div>
       </section>
       <div class="card"><div class="label">Todo el build, hasta ahora</div><div class="scroll-x">${builds(totals(), "total")}</div></div>
-      <div class="two gap">
+      <div class="two gap overview-row">
         <div class="card"><div class="label">Capítulos</div><ol class="chapters plain">${D.chapters.map((ch) =>
           `<li><b>${esc(ch.title)}</b> <span class="src">${ch.checkpoints.map((id) => `<a href="${to(id)}">${id}</a>`).join(", ")}</span></li>`).join("")}</ol></div>
-        <div class="card"><div class="label">El stack</div><table>${D.project.stack.map((s) =>
+        <div class="card"><div class="label">El stack</div><table class="stack">${D.project.stack.map((s) =>
           `<tr><td><b>${esc(s.name)}</b><div class="muted">${esc(s.role)}</div></td><td>${esc(s.note || "")}<div class="src">${esc(s.source || "")}</div></td></tr>`).join("")}</table></div>
       </div>`;
   }
