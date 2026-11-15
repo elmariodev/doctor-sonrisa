@@ -45,7 +45,7 @@ window.DEVLOG = {
   ],
   checkpoints: [
     {
-      id: "cp-0", title: "El bot roto", status: "done", date: "2026-11-14", commit: "COMMIT_CP0",
+      id: "cp-0", title: "El bot roto", status: "done", date: "2026-11-14", commit: "08115c2",
       goal: "El bot como lo hace casi todo el mundo: un prompt con todo adentro.",
       built: [
         "La página de la clínica con un chat que llama a Groq directo desde el navegador.",
