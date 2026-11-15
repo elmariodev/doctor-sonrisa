@@ -224,7 +224,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 295, "tokensIn": 2974027, "tokensOut": 13315, "toolCalls": 13, "apiCostUsd": 1.03, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 12 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-5", title: "Límite de mensajes", status: "done", date: "2026-11-14", commit: "COMMIT_CP5",
+      id: "cp-5", title: "Límite de mensajes", status: "done", date: "2026-11-14", commit: "f32ea0d",
       goal: "Un tope de mensajes por visitante, y un presupuesto para que nadie gaste la cuota gratis.",
       built: [
         "15 mensajes por hora por visitante. El visitante es la IP que ve Cloudflare: borrar las cookies no sirve para saltárselo.",
