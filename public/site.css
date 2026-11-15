@@ -48,3 +48,6 @@ body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-seri
   .top { padding: 16px; flex-wrap: wrap; gap: 8px; }
   .intro h1 { font-size: 40px; }
 }
+
+/* The password field is a text field drawn as dots: see the login form */
+.secret { -webkit-text-security: disc; text-security: disc; }

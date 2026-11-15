@@ -11,9 +11,12 @@
   <div class="brand"><span class="tooth">🦷</span> Doctor Sonrisa</div>
   <div class="top-right">
     <nav><a href="#">Servicios</a><a href="#">Precios</a><a href="#">Contacto</a></nav>
-    <form id="login" class="login">
-      <input id="email" type="email" placeholder="Correo" autocomplete="username" required>
-      <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+    <!-- The demo is recorded on camera: no browser autofill, saved emails or password
+         manager here. The password is a text field drawn as dots (.secret) so the
+         browser does not treat this as a login it can fill or save. -->
+    <form id="login" class="login" autocomplete="off">
+      <input id="email" type="text" inputmode="email" placeholder="Correo" aria-label="Correo" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-form-type="other" required>
+      <input id="password" class="secret" type="text" placeholder="Contraseña" aria-label="Contraseña" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-form-type="other" required>
       <button type="submit">Entrar</button>
       <span id="login-error" class="login-error"></span>
     </form>
