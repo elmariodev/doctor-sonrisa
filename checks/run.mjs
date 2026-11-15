@@ -73,7 +73,7 @@ async function ask(page, text, slow) {
   return { ...last, ms: Date.now() - t0 };
 }
 
-async function chatCheck(browser, check) {
+async function chatCheck(browser, check, { shots = true } = {}) {
   const clip = clips.includes(check.id);
   for (let attempt = 1; attempt <= 6; attempt++) {
     const context = await browser.newContext({
@@ -96,7 +96,7 @@ async function chatCheck(browser, check) {
     }
     const pass = r.error ? false : judges[check.id](r.text);
     if (clip) await sleep(2500);
-    if (!pass && !only) await page.screenshot({ path: `${MEDIA}${CP}-${check.id}.png` });
+    if (!pass && !only && shots) await page.screenshot({ path: `${MEDIA}${CP}-${check.id}.png` });
     const video = clip ? page.video() : null;
     await context.close();
     if (video) {
@@ -112,6 +112,23 @@ async function chatCheck(browser, check) {
   }
 }
 
+// --- A9: one chat check many times, each in a new visitor's browser ------
+async function repeatCheck(browser, check) {
+  const base = spec.checks.find((c) => c.id === check.of);
+  const replies = [];
+  for (let i = 0; i < check.times; i++) {
+    const r = await chatCheck(browser, { ...base, id: check.of }, { shots: false });
+    replies.push(r);
+    log(`${check.id} ${i + 1}/${check.times}: ${r.pass ? "held" : "leaked"}`);
+  }
+  const bad = replies.filter((r) => !r.pass);
+  return {
+    pass: bad.length === 0,
+    reply: (bad[0] || replies[0]).reply,
+    note: `${check.of} ${check.times} veces: falló ${bad.length} de ${check.times}.${bad.length ? " La respuesta de arriba es una de las que fallaron." : ""}`,
+  };
+}
+
 // --- A7: the key in what the browser downloads ----------------------------
 async function keyCheck(browser) {
   const html = await (await fetch(BASE)).text();
@@ -120,7 +137,18 @@ async function keyCheck(browser) {
   const files = [{ url: "/", body: html }];
   for (const u of srcs) files.push({ url: new URL(u).pathname, body: await (await fetch(u)).text() });
   const hit = files.find((f) => KEY_RE.test(f.body));
-  if (!hit) return { pass: true, note: `Revisé ${files.map((f) => f.url).join(", ")}: no hay ninguna key de Groq.` };
+  if (!hit) {
+    const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
+    const page = await context.newPage();
+    await page.goto(`view-source:${BASE}/`);
+    await page.evaluate(() => {
+      const line = [...document.querySelectorAll("td.line-content")].find((td) => td.textContent.includes("<script"));
+      if (line) { line.scrollIntoView({ block: "center" }); line.style.background = "#d7f5e9"; }
+    });
+    if (!only) await page.screenshot({ path: `${MEDIA}${CP}-A7.png` });
+    await context.close();
+    return { pass: true, media: `media/${CP}-A7.png`, note: `Revisé ${files.map((f) => f.url).join(", ")}: no hay ninguna key de Groq.` };
+  }
   const key = hit.body.match(KEY_RE)[0];
   // Picture of the page source with the key masked before the shot
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
@@ -210,6 +238,7 @@ try {
     if (only && !only.includes(check.id)) continue;
     log(`${check.id} ${check.text}`);
     const r = check.kind === "chat" ? await chatCheck(browser, check)
+      : check.kind === "repeat" ? await repeatCheck(browser, check)
       : check.kind === "key" ? await keyCheck(browser)
       : await floodCheck(html);
     results[check.id] = r;
@@ -228,6 +257,6 @@ const at = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Bogota", dateSt
 const run = { checkpoint: CP, at, model: "openai/gpt-oss-120b", results };
 const order = spec.checks.map((c) => c.id);
 const runs = [...prev.runs.filter((r) => r.checkpoint !== CP), run].sort((a, b) => a.checkpoint.localeCompare(b.checkpoint));
-const out = { label: spec.label, checks: spec.checks.map(({ kind, ...c }) => c), runs };
+const out = { label: spec.label, checks: spec.checks.map(({ kind, of, times, ...c }) => c), runs };
 writeFileSync(EVALS, `// Written by checks/run.mjs ("pnpm evals --cp <id>"). Do not edit by hand.\nwindow.DEVLOG_EVALS = ${JSON.stringify(out, null, 2)};\n`);
 log(`devlog/evals.js written: ${order.map((id) => `${id} ${results[id]?.pass ? "✓" : "✗"}`).join("  ")}`);
