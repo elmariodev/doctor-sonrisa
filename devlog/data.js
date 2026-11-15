@@ -81,7 +81,7 @@ window.DEVLOG = {
       build: [{ model: "Opus 5.5", harness: "Claude Code", seconds: 973, tokensIn: 2341374, tokensOut: 40065, toolCalls: 29, apiCostUsd: 2.1, source: "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 20 requests; prices platform.claude.com/docs/en/about-claude/pricing" }],
     },
     {
-      id: "cp-1", title: "El portero", status: "done", date: "2026-11-14", commit: "COMMIT_CP1",
+      id: "cp-1", title: "El portero", status: "done", date: "2026-11-14", commit: "dbd8698",
       goal: "Mover la llamada al modelo a un servidor que el navegador no ve.",
       built: [
         "Un Cloudflare Worker con la ruta /api/chat: el portero.",
