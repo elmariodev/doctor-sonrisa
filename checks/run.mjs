@@ -11,7 +11,7 @@
 // way a script would, without cookies. Failed chat checks leave a picture
 // in devlog/media/<cp>-<check>.png (1920x1080 at device scale 2).
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmSync, readdirSync } from "node:fs";
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { chromium } from "playwright";
 import { judges } from "./judges.mjs";
 import { accounts } from "./fixtures.mjs";
@@ -109,7 +109,13 @@ async function chatCheck(browser, check, { shots = true } = {}) {
       await sleep(wait);
       continue;
     }
-    const pass = r.error ? false : judges[check.id](r.text);
+    let pass = r.error ? false : judges[check.id](r.text);
+    let dbNote = "";
+    if (check.db && !r.error) {
+      const value = dbValue(check.db.sql);
+      if (value !== check.db.expect) pass = false;
+      dbNote = `En la base: ${value} (se espera ${check.db.expect}).`;
+    }
     if (clip) await sleep(2500);
     if (shots && ((!pass && !only) || shotsFor.includes(check.id))) await page.screenshot({ path: `${MEDIA}${CP}-${check.id}.png` });
     const video = clip ? page.video() : null;
@@ -127,6 +133,7 @@ async function chatCheck(browser, check, { shots = true } = {}) {
     if (r.sources?.length) result.sources = r.sources;
     if (r.usage) result.usage = r.usage;
     if (check.who !== "invitado" && !loggedIn) result.note = "La página no tiene login: escribe como cualquier visitante.";
+    if (dbNote) result.note = dbNote;
     if (r.error) result.note = `Error del chat: ${r.error}`;
     return result;
   }
@@ -147,6 +154,49 @@ async function repeatCheck(browser, check) {
     reply: (bad[0] || replies[0]).reply,
     note: `${check.of} ${check.times} veces: falló ${bad.length} de ${check.times}.${bad.length ? " La respuesta de arriba es una de las que fallaron." : ""}`,
   };
+}
+
+// --- A14: several short messages, each from a new visitor ----------------
+async function manyCheck(browser, check) {
+  const out = [];
+  for (const text of check.texts) {
+    const r = await chatCheck(browser, { ...check, kind: "chat", text }, { shots: false });
+    out.push({ text, ...r });
+    log(`${check.id} "${text}": ${r.pass ? "ok" : "blocked"}`);
+  }
+  const bad = out.filter((r) => !r.pass);
+  return {
+    pass: bad.length === 0,
+    reply: (bad[0] || out[0]).reply,
+    note: `${out.length - bad.length} de ${out.length} pasaron.${bad.length ? ` Bloqueado: ${bad.map((b) => `"${b.text}"`).join(", ")}. La respuesta de arriba es la de "${bad[0].text}".` : ""}`,
+  };
+}
+
+// --- A17: straight to the API with a conversation the script wrote --------
+async function apiCheck(check) {
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const t0 = Date.now();
+    const res = await fetch(`${BASE}/api/chat`, {
+      method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": visitorIp() },
+      body: JSON.stringify({ messages: check.messages }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 429 && body.error !== "limit" && attempt < 6) {
+      const wait = Math.max(Number(body.retryAfter) || 0, 10) * 1000 + 2000;
+      log(`${check.id}: rate limited, retry ${attempt} in ${Math.round(wait / 1000)} s`);
+      await sleep(wait);
+      continue;
+    }
+    if (!res.ok) return { pass: false, note: `Error del portero: ${res.status} ${body.error}` };
+    return { pass: judges[check.id](body.reply), reply: body.reply, ms: Date.now() - t0, ...(body.tools?.length ? { tools: body.tools } : {}) };
+  }
+}
+
+// A check can also look at the local database after the chat
+function dbValue(sql) {
+  const out = execFileSync("pnpm", ["-s", "exec", "wrangler", "d1", "execute", "DB", "--local", "--json", "--command", sql], { cwd: ROOT, encoding: "utf8" });
+  const row = JSON.parse(out)[0].results[0];
+  return Object.values(row)[0];
 }
 
 // --- A7: the key in what the browser downloads ----------------------------
@@ -260,6 +310,8 @@ try {
     log(`${check.id} ${check.text}`);
     const r = check.kind === "chat" ? await chatCheck(browser, check)
       : check.kind === "repeat" ? await repeatCheck(browser, check)
+      : check.kind === "many" ? await manyCheck(browser, check)
+      : check.kind === "api" ? await apiCheck(check)
       : check.kind === "key" ? await keyCheck(browser)
       : await floodCheck(html);
     results[check.id] = r;
@@ -278,6 +330,6 @@ const at = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Bogota", dateSt
 const run = { checkpoint: CP, at, model: "openai/gpt-oss-120b", results };
 const order = spec.checks.map((c) => c.id);
 const runs = [...prev.runs.filter((r) => r.checkpoint !== CP), run].sort((a, b) => a.checkpoint.localeCompare(b.checkpoint));
-const out = { label: spec.label, checks: spec.checks.map(({ kind, of, times, ...c }) => c), runs };
+const out = { label: spec.label, checks: spec.checks.map(({ kind, of, times, texts, messages, db, ...c }) => c), runs };
 writeFileSync(EVALS, `// Written by checks/run.mjs ("pnpm evals --cp <id>"). Do not edit by hand.\nwindow.DEVLOG_EVALS = ${JSON.stringify(out, null, 2)};\n`);
 log(`devlog/evals.js written: ${order.map((id) => `${id} ${results[id]?.pass ? "✓" : "✗"}`).join("  ")}`);
