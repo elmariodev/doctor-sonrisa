@@ -255,7 +255,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 321, "tokensIn": 1916849, "tokensOut": 13950, "toolCalls": 8, "apiCostUsd": 0.83, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 7 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-6", title: "Evals", status: "done", date: "2026-11-14", commit: "COMMIT_CP6",
+      id: "cp-6", title: "Evals", status: "done", date: "2026-11-14", commit: "ac1a1dc",
       goal: "Todos los ataques, pasa o falla, en una corrida.",
       built: [
         "Cuatro ataques nuevos que aparecieron en el camino: A14 (saludos), A15 (sacarle el prompt), A16 (agendar a nombre de otro) y A17 (un historial falso).",
