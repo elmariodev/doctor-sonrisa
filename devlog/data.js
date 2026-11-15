@@ -78,7 +78,7 @@ window.DEVLOG = {
         { label: "Límite gratis de gpt-oss-120b", value: "30 peticiones/min · 1.000/día", source: "console.groq.com/settings/limits" },
       ],
       decisions: ["D005", "D006", "D007", "D008"],
-      build: [{ model: "Opus 5.5", harness: "Claude Code", seconds: 973, tokensIn: 2341374, tokensOut: 40065, toolCalls: 29, apiCostUsd: 2.1, source: "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 20 requests; prices platform.claude.com/docs/en/about-claude/pricing" }],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 1042, "tokensIn": 3472178, "tokensOut": 46388, "toolCalls": 35, "apiCostUsd": 2.57, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 27 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-1", title: "El portero", status: "done", date: "2026-11-14", commit: "dbd8698",
@@ -117,7 +117,7 @@ window.DEVLOG = {
         { label: "Mensajes por minuto para todo el bot", value: "unos 30: el límite de gpt-oss-120b", source: "A6 en cp-0 y cp-1; console.groq.com/settings/limits" },
       ],
       decisions: ["D009", "D010"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 259, "tokensIn": 1909736, "tokensOut": 12123, "toolCalls": 16, "apiCostUsd": 0.8, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 11 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 362, "tokensIn": 2482020, "tokensOut": 16551, "toolCalls": 18, "apiCostUsd": 1.06, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 14 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-2", title: "Login y roles", status: "done", date: "2026-11-14", commit: "62ed29e",
@@ -154,7 +154,7 @@ window.DEVLOG = {
         { label: "Mensajes antes de que Groq corte", value: "10 en 6,1 s, por tokens por minuto", source: "evals.js, corrida cp-2 (A6)" },
       ],
       decisions: ["D011", "D012", "D013"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 219, "tokensIn": 2299077, "tokensOut": 20360, "toolCalls": 12, "apiCostUsd": 1.1, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 11 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 251, "tokensIn": 2746501, "tokensOut": 23690, "toolCalls": 14, "apiCostUsd": 1.29, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 13 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-3", title: "Filtro de tema", status: "done", date: "2026-11-14", commit: "0c8e0ed",
@@ -186,7 +186,7 @@ window.DEVLOG = {
         { label: "Límite gratis de gpt-oss-20b", value: "30 peticiones/min · 1.000/día", source: "console.groq.com/settings/limits" },
       ],
       decisions: ["D014", "D015"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 84, "tokensIn": 691009, "tokensOut": 4850, "toolCalls": 4, "apiCostUsd": 0.3, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 3 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 113, "tokensIn": 1159490, "tokensOut": 7788, "toolCalls": 6, "apiCostUsd": 0.47, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 5 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-4", title: "RAG", status: "done", date: "2026-11-14", commit: "d811d03",
@@ -221,7 +221,7 @@ window.DEVLOG = {
         { label: "Tiempo hasta poder buscar lo cargado", value: "23 s", source: "pnpm cli docs:load" },
       ],
       decisions: ["D016", "D017"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 295, "tokensIn": 2974027, "tokensOut": 13315, "toolCalls": 13, "apiCostUsd": 1.03, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 12 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 327, "tokensIn": 3493349, "tokensOut": 16726, "toolCalls": 15, "apiCostUsd": 1.23, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 14 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-5", title: "Límite de mensajes", status: "done", date: "2026-11-14", commit: "f32ea0d",
@@ -252,7 +252,7 @@ window.DEVLOG = {
         { label: "Mensajes por minuto para todo el bot", value: "unos 12: 25 llamadas por minuto, y cada mensaje usa una o dos al agente", source: "src/limits.ts; usage.calls en evals.js, corrida cp-4" },
       ],
       decisions: ["D018", "D019", "D020"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 321, "tokensIn": 1916849, "tokensOut": 13950, "toolCalls": 8, "apiCostUsd": 0.83, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 7 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 356, "tokensIn": 2485786, "tokensOut": 17541, "toolCalls": 10, "apiCostUsd": 1.04, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 9 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-6", title: "Evals", status: "done", date: "2026-11-14", commit: "ac1a1dc",
@@ -281,7 +281,7 @@ window.DEVLOG = {
         { label: "Lo que tarda la corrida completa", value: "1 min 34 s, con 49 s de espera por el presupuesto", source: "salida de pnpm evals --cp cp-7" },
       ],
       decisions: ["D021"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 59, "tokensIn": 1170755, "tokensOut": 5990, "toolCalls": 5, "apiCostUsd": 0.43, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 4 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 196, "tokensIn": 2367712, "tokensOut": 9544, "toolCalls": 9, "apiCostUsd": 0.8, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 8 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
       id: "cp-7", title: "Logs y ZDR", status: "done", date: "2026-11-14", commit: "946ee6a",
@@ -311,10 +311,10 @@ window.DEVLOG = {
         { label: "Ataques que pasan en una corrida", value: "18 de 18", source: "evals.js, corrida cp-7" },
         { label: "ZDR de Groq", value: "prendido (Inference APIs, desde el 14 de noviembre de 2026)", source: "console.groq.com/settings/data-controls" },
         { label: "Lo que Groq guarda sin ZDR", value: "entradas y salidas hasta 30 días, para confiabilidad", source: "console.groq.com/docs/your-data" },
-        { label: "Todo el bot, construido por el agente", value: "unos 50 min y US$ 9,35 en tokens a precio de API", source: "scripts/session-usage.py, del inicio a cp-7" },
+        { label: "Todo el bot, construido por el agente", value: "unos 48 min y US$ 9,72 en tokens a precio de API", source: "scripts/session-usage.py, del inicio al tag cp-7 (la suma de los pasos)" },
       ],
       decisions: ["D022", "D023"],
-      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 220, "tokensIn": 3148336, "tokensOut": 11839, "toolCalls": 12, "apiCostUsd": 1.04, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 10 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 257, "tokensIn": 3801450, "tokensOut": 15131, "toolCalls": 13, "apiCostUsd": 1.26, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 12 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
   ],
   decisions: [
