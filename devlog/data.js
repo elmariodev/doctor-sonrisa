@@ -120,7 +120,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 259, "tokensIn": 1909736, "tokensOut": 12123, "toolCalls": 16, "apiCostUsd": 0.8, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 11 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-2", title: "Login y roles", status: "done", date: "2026-11-14", commit: "COMMIT_CP2",
+      id: "cp-2", title: "Login y roles", status: "done", date: "2026-11-14", commit: "62ed29e",
       goal: "Que el servidor sepa quién escribe, y le dé al modelo solo las herramientas de su rol.",
       built: [
         "Login con correo y contraseña. El servidor guarda la sesión en D1 y le da al navegador una cookie que JavaScript no puede leer.",
