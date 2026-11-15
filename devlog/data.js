@@ -157,7 +157,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 219, "tokensIn": 2299077, "tokensOut": 20360, "toolCalls": 12, "apiCostUsd": 1.1, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 11 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-3", title: "Filtro de tema", status: "done", date: "2026-11-14", commit: "COMMIT_CP3",
+      id: "cp-3", title: "Filtro de tema", status: "done", date: "2026-11-14", commit: "0c8e0ed",
       goal: "Un modelo chico revisa cada mensaje antes del agente y dice sí o no.",
       built: [
         "gpt-oss-20b lee cada mensaje y responde solo {\"en_tema\": true} o {\"en_tema\": false}, con un esquema JSON estricto.",
