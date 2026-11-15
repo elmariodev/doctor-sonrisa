@@ -284,7 +284,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 59, "tokensIn": 1170755, "tokensOut": 5990, "toolCalls": 5, "apiCostUsd": 0.43, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 4 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-7", title: "Logs y ZDR", status: "done", date: "2026-11-14", commit: "COMMIT_CP7",
+      id: "cp-7", title: "Logs y ZDR", status: "done", date: "2026-11-14", commit: "946ee6a",
       goal: "Ver qué pasó en cada chat, sin que el proveedor guarde nada.",
       built: [
         "Un log en D1: cada mensaje con su respuesta, el rol, las herramientas usadas, los documentos, los tokens y qué hizo el portero (pasó, fuera de tema, límite, ocupado).",
