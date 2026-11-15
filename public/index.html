@@ -9,7 +9,19 @@
 <body>
 <header class="top">
   <div class="brand"><span class="tooth">🦷</span> Doctor Sonrisa</div>
-  <nav><a href="#">Servicios</a><a href="#">Precios</a><a href="#">Contacto</a></nav>
+  <div class="top-right">
+    <nav><a href="#">Servicios</a><a href="#">Precios</a><a href="#">Contacto</a></nav>
+    <form id="login" class="login">
+      <input id="email" type="email" placeholder="Correo" autocomplete="username" required>
+      <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+      <button type="submit">Entrar</button>
+      <span id="login-error" class="login-error"></span>
+    </form>
+    <div id="account" class="login" hidden>
+      <span class="who-badge">Entraste como <b id="account-name"></b></span>
+      <button id="logout" class="logout" type="button">Salir</button>
+    </div>
+  </div>
 </header>
 
 <main class="page">
@@ -27,7 +39,7 @@
   <section id="chat" class="chat" data-busy="false" aria-label="Chat con Doctor Sonrisa">
     <div class="chat-head">
       <div class="avatar">🦷</div>
-      <div><b>Asistente de Doctor Sonrisa</b><span id="who">En línea</span></div>
+      <div><b>Asistente de Doctor Sonrisa</b><span id="who">Invitado</span></div>
     </div>
     <div id="msgs" class="msgs">
       <div class="bubble bot">¡Hola! Soy el asistente de Doctor Sonrisa. ¿En qué te ayudo?</div>
@@ -39,6 +51,7 @@
   </section>
 </main>
 
+<script src="/account.js"></script>
 <script src="/chat.js"></script>
 </body>
 </html>

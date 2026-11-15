@@ -1,0 +1,23 @@
+{
+  "_note": "Fictional demo data for local development. The passwords are test values; change or delete these accounts before going live.",
+  "patients": [
+    { "id": "p-001", "name": "Juan Pérez", "phone": "300 555 0142", "email": "juan.perez@ejemplo.test" },
+    { "id": "p-002", "name": "Valentina Ríos", "phone": "300 555 0178", "email": "valentina.rios@ejemplo.test" },
+    { "id": "p-003", "name": "Camilo Herrera", "phone": "300 555 0193", "email": "camilo.herrera@ejemplo.test" },
+    { "id": "p-004", "name": "Sofía Mendoza", "phone": "300 555 0127", "email": "sofia.mendoza@ejemplo.test" },
+    { "id": "p-005", "name": "Mateo Castaño", "phone": "300 555 0165", "email": "mateo.castano@ejemplo.test" }
+  ],
+  "appointments": [
+    { "patient_id": "p-001", "starts_at": "2026-11-18T10:30", "service": "limpieza" },
+    { "patient_id": "p-001", "starts_at": "2026-12-02T16:00", "service": "resina" },
+    { "patient_id": "p-002", "starts_at": "2026-11-20T09:15", "service": "control de ortodoncia" },
+    { "patient_id": "p-003", "starts_at": "2026-11-21T11:45", "service": "valoración" },
+    { "patient_id": "p-004", "starts_at": "2026-11-24T15:30", "service": "blanqueamiento" },
+    { "patient_id": "p-005", "starts_at": "2026-11-28T10:00", "service": "extracción" }
+  ],
+  "users": [
+    { "id": "u-valentina", "email": "valentina.rios@ejemplo.test", "name": "Valentina Ríos", "role": "user", "patient_id": "p-002", "password": "demo-valentina-2026", "check": "paciente" },
+    { "id": "u-juan", "email": "juan.perez@ejemplo.test", "name": "Juan Pérez", "role": "user", "patient_id": "p-001", "password": "demo-juan-2026" },
+    { "id": "u-doctora", "email": "doctora@doctorsonrisa.test", "name": "Dra. Paula Sonrisa", "role": "admin", "patient_id": null, "password": "demo-doctora-2026", "check": "admin" }
+  ]
+}

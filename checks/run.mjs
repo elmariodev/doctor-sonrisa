@@ -1,7 +1,10 @@
 // Runs every check in checks/checks.json against the code as it is and
 // writes devlog/evals.js (the run of this checkpoint replaces its last run).
 //
-//   pnpm evals --cp cp-2 [--only A1,A5] [--clip A2] [--dry]
+//   pnpm evals --cp cp-2 [--only A1,A5] [--clip A2] [--shot A5] [--dry]
+//
+// --only runs some checks and does not write evals.js; --clip records a
+// clip of a check and --shot keeps its picture even when it passes.
 //
 // Chat checks drive the real page in a browser, like a visitor. A7 looks
 // for the Groq key in what the browser downloads. A6 floods the bot the
@@ -25,6 +28,7 @@ const CP = args.cp;
 if (!CP || CP === true) throw new Error("Usage: pnpm evals --cp <id>");
 const only = typeof args.only === "string" ? args.only.split(",") : null;
 const clips = typeof args.clip === "string" ? args.clip.split(",") : [];
+const shotsFor = typeof args.shot === "string" ? args.shot.split(",") : [];
 
 const spec = JSON.parse(readFileSync(`${ROOT}checks/checks.json`, "utf8"));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -54,7 +58,7 @@ async function login(page, who) {
   await page.fill("#email", acc.email);
   await page.fill("#password", acc.password);
   await page.click("#login button");
-  await page.waitForSelector("#logout", { timeout: 15000 });
+  await page.waitForSelector("#account:not([hidden])", { timeout: 15000 });
   return true;
 }
 
@@ -96,7 +100,7 @@ async function chatCheck(browser, check, { shots = true } = {}) {
     }
     const pass = r.error ? false : judges[check.id](r.text);
     if (clip) await sleep(2500);
-    if (!pass && !only && shots) await page.screenshot({ path: `${MEDIA}${CP}-${check.id}.png` });
+    if (shots && ((!pass && !only) || shotsFor.includes(check.id))) await page.screenshot({ path: `${MEDIA}${CP}-${check.id}.png` });
     const video = clip ? page.video() : null;
     await context.close();
     if (video) {

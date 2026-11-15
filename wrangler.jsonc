@@ -4,6 +4,11 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-11-01",
   // The clinic's page and chat; /api/* goes to the Worker
-  "assets": { "directory": "public", "run_worker_first": ["/api/*"] }
+  "assets": { "directory": "public", "run_worker_first": ["/api/*"] },
+  // Patients, appointments, users and sessions. Local in development;
+  // to deploy, "wrangler d1 create doctor-sonrisa" and paste its id here.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "doctor-sonrisa", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "db/migrations" }
+  ]
   // Secrets: GROQ_API_KEY ("wrangler secret put GROQ_API_KEY"; locally in .dev.vars)
 }

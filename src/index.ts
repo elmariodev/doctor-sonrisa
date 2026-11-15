@@ -1,10 +1,13 @@
 // The gate ("el portero"): the only thing that talks to Groq. It holds the
-// key as a secret, so the browser never sees it.
-import { groq, UpstreamRateLimit, type Message } from "./groq";
-import { SYSTEM_PROMPT } from "./prompt";
+// key as a secret, reads the session cookie to know who is writing, and
+// gives the agent only the tools of that role.
+import { UpstreamRateLimit, type Message } from "./groq";
+import { getSession, login, logout, sessionCookie, clearCookie } from "./auth";
+import { runAgent } from "./agent";
 
 export interface Env {
   GROQ_API_KEY: string;
+  DB: D1Database;
 }
 
 const json = (data: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -19,28 +22,47 @@ function readHistory(body: any): Message[] | null {
   return ok && clean[clean.length - 1].role === "user" ? clean : null;
 }
 
+const ROLE_NAME = { guest: "invitado", user: "paciente", admin: "admin" } as const;
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    if (url.pathname !== "/api/chat") return json({ error: "not_found" }, 404);
-    if (request.method !== "POST") return json({ error: "method" }, 405);
+    const { pathname } = new URL(request.url);
+    const route = `${request.method} ${pathname}`;
 
-    const history = readHistory(await request.json().catch(() => null));
-    if (!history) return json({ error: "bad_request" }, 400);
-
-    try {
-      const data = await groq(env.GROQ_API_KEY, {
-        model: "openai/gpt-oss-120b",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history],
-        max_completion_tokens: 800,
-      });
-      return json({ reply: data.choices[0].message.content });
-    } catch (e) {
-      if (e instanceof UpstreamRateLimit) {
-        return json({ error: "upstream_rate_limit", detail: e.detail, retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });
-      }
-      console.error(e);
-      return json({ error: "server" }, 500);
+    if (route === "GET /api/me") {
+      const s = await getSession(request, env.DB);
+      return json({ role: s.role, roleName: ROLE_NAME[s.role], name: s.name || null });
     }
+
+    if (route === "POST /api/login") {
+      const body: any = await request.json().catch(() => ({}));
+      if (typeof body.email !== "string" || typeof body.password !== "string") return json({ error: "bad_request" }, 400);
+      const ok = await login(env.DB, body.email, body.password);
+      if (!ok) return json({ error: "login", message: "Correo o contraseña incorrectos." }, 401);
+      return json({ role: ok.role, roleName: ROLE_NAME[ok.role], name: ok.name }, 200, { "Set-Cookie": sessionCookie(ok.token) });
+    }
+
+    if (route === "POST /api/logout") {
+      await logout(request, env.DB);
+      return json({ ok: true }, 200, { "Set-Cookie": clearCookie() });
+    }
+
+    if (route === "POST /api/chat") {
+      const history = readHistory(await request.json().catch(() => null));
+      if (!history) return json({ error: "bad_request" }, 400);
+      const session = await getSession(request, env.DB);
+      try {
+        const { reply, tools } = await runAgent(env.GROQ_API_KEY, env.DB, session, history);
+        return json({ reply, tools });
+      } catch (e) {
+        if (e instanceof UpstreamRateLimit) {
+          return json({ error: "upstream_rate_limit", detail: e.detail, retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });
+        }
+        console.error(e);
+        return json({ error: "server" }, 500);
+      }
+    }
+
+    return json({ error: "not_found" }, 404);
   },
 } satisfies ExportedHandler<Env>;
