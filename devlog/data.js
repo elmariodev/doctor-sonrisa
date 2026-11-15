@@ -189,7 +189,7 @@ window.DEVLOG = {
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 84, "tokensIn": 691009, "tokensOut": 4850, "toolCalls": 4, "apiCostUsd": 0.3, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 3 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
     {
-      id: "cp-4", title: "RAG", status: "done", date: "2026-11-14", commit: "COMMIT_CP4",
+      id: "cp-4", title: "RAG", status: "done", date: "2026-11-14", commit: "d811d03",
       goal: "Que responda con los documentos de la clínica, no de memoria.",
       built: [
         "Seis documentos públicos de la clínica: horarios, precios, servicios, políticas, pagos y cuidados.",
