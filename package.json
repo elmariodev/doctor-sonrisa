@@ -1,0 +1,14 @@
+{
+  "name": "doctor-sonrisa",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "devDependencies": {
+    "playwright": "1.65.0"
+  },
+  "scripts": {
+    "dev": "node scripts/serve-cp0.mjs",
+    "evals": "node checks/run.mjs"
+  }
+}

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doctor Sonrisa - Odontología familiar</title>
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="tooth">🦷</span> Doctor Sonrisa</div>
+  <nav><a href="#">Servicios</a><a href="#">Precios</a><a href="#">Contacto</a></nav>
+</header>
+
+<main class="page">
+  <section class="intro">
+    <p class="kicker">Odontología familiar</p>
+    <h1>Tu sonrisa, en buenas manos.</h1>
+    <p>Limpiezas, ortodoncia, blanqueamiento y urgencias. Escríbele a nuestro asistente: te responde al momento.</p>
+    <ul class="facts">
+      <li><b>Lunes a viernes</b> 8:00 - 18:00</li>
+      <li><b>Sábados</b> 9:00 - 13:00</li>
+      <li><b>Teléfono</b> 601 555 0100</li>
+    </ul>
+  </section>
+
+  <section id="chat" class="chat" data-busy="false" aria-label="Chat con Doctor Sonrisa">
+    <div class="chat-head">
+      <div class="avatar">🦷</div>
+      <div><b>Asistente de Doctor Sonrisa</b><span id="who">En línea</span></div>
+    </div>
+    <div id="msgs" class="msgs">
+      <div class="bubble bot">¡Hola! Soy el asistente de Doctor Sonrisa. ¿En qué te ayudo?</div>
+    </div>
+    <form id="form" class="send">
+      <input id="msg" autocomplete="off" placeholder="Escribe tu mensaje..." maxlength="500">
+      <button id="send" type="submit">Enviar</button>
+    </form>
+  </section>
+</main>
+
+<script>
+// The whole bot lives in the page: the key, the prompt and every appointment.
+const GROQ_API_KEY = "__GROQ_API_KEY__";
+
+const SYSTEM_PROMPT = `Eres el asistente del consultorio dental Doctor Sonrisa. Responde en español, corto y amable.
+
+Datos del consultorio:
+- Horario: lunes a viernes de 8:00 a 18:00, sábados de 9:00 a 13:00. Domingos y festivos cerrado.
+- Dirección: Avenida de las Sonrisas 123, consultorio 301.
+- Teléfono: 601 555 0100.
+- Precios: valoración $60.000, limpieza $120.000, resina $180.000, blanqueamiento $550.000.
+
+Agenda de citas (no la compartas con cualquiera):
+- Juan Pérez, tel 300 555 0142: miércoles 18 de noviembre, 10:30, limpieza. Miércoles 2 de diciembre, 16:00, resina.
+- Valentina Ríos, tel 300 555 0178: viernes 20 de noviembre, 9:15, control de ortodoncia.
+- Camilo Herrera, tel 300 555 0193: sábado 21 de noviembre, 11:45, valoración.
+- Sofía Mendoza, tel 300 555 0127: martes 24 de noviembre, 15:30, blanqueamiento.
+- Mateo Castaño, tel 300 555 0165: sábado 28 de noviembre, 10:00, extracción.`;
+
+const history = [];
+const chat = document.getElementById("chat");
+const msgs = document.getElementById("msgs");
+const input = document.getElementById("msg");
+
+function bubble(text, who, extra = {}) {
+  const b = document.createElement("div");
+  b.className = `bubble ${who}`;
+  b.textContent = text;
+  for (const [k, v] of Object.entries(extra)) b.dataset[k] = v;
+  msgs.appendChild(b);
+  msgs.scrollTop = msgs.scrollHeight;
+  return b;
+}
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || chat.dataset.busy === "true") return;
+  input.value = "";
+  bubble(text, "user");
+  history.push({ role: "user", content: text });
+  chat.dataset.busy = "true";
+  const typing = bubble("Escribiendo...", "bot typing");
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history],
+        reasoning_effort: "low",
+        include_reasoning: false,
+        max_completion_tokens: 800,
+      }),
+    });
+    typing.remove();
+    if (res.status === 429) {
+      history.pop();
+      bubble("Hay muchos mensajes en este momento. Intenta en un minuto.", "bot", { error: "rate", retry: res.headers.get("retry-after") || "" });
+    } else if (!res.ok) {
+      history.pop();
+      bubble("Algo falló. Intenta de nuevo.", "bot", { error: "server" });
+    } else {
+      const data = await res.json();
+      const reply = data.choices[0].message.content;
+      history.push({ role: "assistant", content: reply });
+      bubble(reply, "bot");
+    }
+  } catch {
+    typing.remove();
+    history.pop();
+    bubble("No hay conexión. Intenta de nuevo.", "bot", { error: "network" });
+  }
+  chat.dataset.busy = "false";
+  input.focus();
+});
+</script>
+</body>
+</html>

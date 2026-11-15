@@ -1,0 +1,9 @@
+# esbuild and workerd (wrangler) ship native binaries and need their install scripts
+allowBuilds:
+  esbuild: true
+  workerd: true
+# Only versions published at least two days ago (in minutes). Strict makes
+# pnpm stop instead of adding minimumReleaseAgeExclude entries; never add any.
+minimumReleaseAge: 2880
+minimumReleaseAgeStrict: true
+savePrefix: ""
