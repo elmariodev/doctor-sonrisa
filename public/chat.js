@@ -1,6 +1,9 @@
 // The chat widget. It only talks to our own server (/api/chat): no key,
 // no prompt and no patient data in the browser.
 const history = [];
+// One id per conversation, so the log can put it back together
+const chatId = crypto.randomUUID();
+document.getElementById("chat").dataset.chatId = chatId;
 const chat = document.getElementById("chat");
 const msgs = document.getElementById("msgs");
 const input = document.getElementById("msg");
@@ -33,7 +36,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history.slice(-20) }),
+      body: JSON.stringify({ chatId, messages: history.slice(-20) }),
     });
     const data = await res.json().catch(() => ({}));
     typing.remove();

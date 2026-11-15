@@ -1,9 +1,10 @@
 // The developer's CLI. The bot never calls it.
 //
-//   pnpm cli db:setup        create the local D1 tables and load the demo data
+//   pnpm cli db:setup [--remote]  create the D1 tables and load the demo data (local by default)
 //   pnpm cli docs:load       split docs/clinica into paragraphs, embed them, store them in Vectorize
 //   pnpm cli docs:search "<q>"  what the RAG finds for a question
 //   pnpm cli docs:tokens     what all the documents would cost pasted in the prompt
+//   pnpm cli logs [--chat <id>] [--last N]  read the chat log (local D1)
 //   pnpm cli evals --cp <id> run the checks (same as pnpm evals)
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -56,8 +57,9 @@ const commands = {
     }
     mkdirSync(`${ROOT}.wrangler/tmp`, { recursive: true });
     writeFileSync(`${ROOT}.wrangler/tmp/seed.sql`, sql.join("\n") + "\n");
-    wrangler("d1", "migrations", "apply", "DB", "--local");
-    wrangler("d1", "execute", "DB", "--local", "--file", ".wrangler/tmp/seed.sql");
+    const where = rest.includes("--remote") ? "--remote" : "--local";
+    wrangler("d1", "migrations", "apply", "DB", where);
+    wrangler("d1", "execute", "DB", where, "--file", ".wrangler/tmp/seed.sql");
   },
   async "docs:load"() {
     const list = chunks();
@@ -107,6 +109,26 @@ const commands = {
     const base = await call("Eres el asistente de un consultorio dental.");
     const full = await call(`Eres el asistente de un consultorio dental.\n\n${all}`);
     console.log(JSON.stringify({ documents: full - base, paragraphs: chunks().length }));
+  },
+  logs() {
+    const opt = (name) => { const i = rest.indexOf(`--${name}`); return i >= 0 ? rest[i + 1] : null; };
+    const chat = opt("chat"), last = Number(opt("last") || 20);
+    if (chat && !/^[a-z0-9-]{8,64}$/i.test(chat)) throw new Error("Bad chat id");
+    const sql = chat
+      ? `SELECT * FROM logs WHERE chat_id = '${chat}' ORDER BY id`
+      : `SELECT * FROM (SELECT * FROM logs ORDER BY id DESC LIMIT ${Math.min(Math.max(last, 1), 500)}) ORDER BY id`;
+    const out = execFileSync("pnpm", ["-s", "exec", "wrangler", "d1", "execute", "DB", "--local", "--json", "--command", sql], { cwd: ROOT, encoding: "utf8" });
+    const rows = JSON.parse(out)[0].results;
+    if (!rows.length) return console.log("No log rows.");
+    let current = null;
+    for (const r of rows) {
+      if (r.chat_id !== current) { current = r.chat_id; console.log(`\n== chat ${r.chat_id} · ${r.role}${r.user_id ? ` (${r.user_id})` : ""} · visitante ${r.visitor}`); }
+      const extra = [r.outcome !== "ok" && r.outcome, r.tools && `herramientas ${JSON.parse(r.tools).join(", ")}`, r.sources && `fuentes ${JSON.parse(r.sources).join(", ")}`,
+        r.prompt_tokens != null && `${r.prompt_tokens}+${r.completion_tokens} tokens`, `${r.ms} ms`].filter(Boolean).join(" · ");
+      console.log(`[${r.at.slice(11, 19)}] Visitante: ${r.message}`);
+      console.log(`           Bot: ${(r.reply || "(sin respuesta)").replace(/\n+/g, " ")}`);
+      console.log(`           ${extra}`);
+    }
   },
   evals() {
     execFileSync("node", ["checks/run.mjs", ...rest], { cwd: ROOT, stdio: "inherit" });

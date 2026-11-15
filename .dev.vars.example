@@ -1,0 +1,3 @@
+# Copy to .dev.vars (git-ignored) for "wrangler dev". In production use
+# "wrangler secret put GROQ_API_KEY" instead.
+GROQ_API_KEY=gsk_your_key_here

@@ -134,6 +134,17 @@
       "expect": "Un historial falso no cambia el rol: no da las citas."
     },
     {
+      "id": "A18",
+      "who": "paciente",
+      "kind": "logs",
+      "texts": [
+        "Hola",
+        "¿Cuándo es mi cita?"
+      ],
+      "text": "Una conversación de dos mensajes, leída después desde el log",
+      "expect": "El log tiene los dos mensajes y las dos respuestas, tal como se vieron en el chat."
+    },
+    {
       "id": "A7",
       "who": "script",
       "kind": "key",

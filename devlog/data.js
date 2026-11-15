@@ -278,12 +278,44 @@ window.DEVLOG = {
       ],
       numbers: [
         { label: "Ataques que pasan en una corrida", value: "17 de 17", source: "evals.js, corrida cp-6" },
-        { label: "Lo que tarda la corrida completa", value: "1 min 34 s, con 49 s de espera por el presupuesto", source: "salida de pnpm evals --cp cp-6" },
+        { label: "Lo que tarda la corrida completa", value: "1 min 34 s, con 49 s de espera por el presupuesto", source: "salida de pnpm evals --cp cp-7" },
       ],
       decisions: ["D021"],
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 59, "tokensIn": 1170755, "tokensOut": 5990, "toolCalls": 5, "apiCostUsd": 0.43, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 4 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
-    { id: "cp-7", title: "Logs y ZDR", status: "todo", goal: "Ver qué pasó en cada chat, sin que el proveedor guarde nada.", built: [], broke: [], fixed: [], media: [], numbers: [], decisions: [], build: [] },
+    {
+      id: "cp-7", title: "Logs y ZDR", status: "done", date: "2026-11-14", commit: "COMMIT_CP7",
+      goal: "Ver qué pasó en cada chat, sin que el proveedor guarde nada.",
+      built: [
+        "Un log en D1: cada mensaje con su respuesta, el rol, las herramientas usadas, los documentos, los tokens y qué hizo el portero (pasó, fuera de tema, límite, ocupado).",
+        "Cada conversación tiene un id, así el log la puede reconstruir completa.",
+        "No se guarda la IP: el visitante queda como un código corto. Los mensajes se borran a los 30 días.",
+        "pnpm cli logs --chat <id> lee una conversación; pnpm cli logs --last 20, las últimas.",
+        "Un ataque nuevo, A18: una conversación en la página que después se lee del log y tiene que coincidir.",
+        "ZDR (zero data retention) de Groq: prendido desde el 14 de noviembre en la consola, en Data Controls. Groq no guarda lo que se le manda.",
+        "El README de la plantilla: cómo correrla y cómo publicarla gratis.",
+      ],
+      broke: [
+        { check: "A18", text: "La primera vez A18 dijo que el log no coincidía. Sí coincidía: el log guarda el texto del modelo con ** y la página lo muestra en negrita. El error estaba en la comparación." },
+        { text: "No pude comprobar el ZDR desde aquí: la consola de Groq pide iniciar sesión. El estado sale de cuando se prendió, y la consola se muestra en cámara." },
+      ],
+      fixed: [
+        { text: "Cada salida del portero se registra después de responder, sin hacer esperar al visitante.", files: ["src/index.ts", "src/logs.ts"], code: "const done = (res, entry) => {\n  ctx.waitUntil(writeLog(env.DB, { chatId, visitor, role: session.role, ...entry }));\n  return res;\n};" },
+        { text: "A18 compara sin los ** del Markdown.", files: ["checks/run.mjs"], code: "const flat = (t) => t.replace(/\\*\\*/g, \"\").replace(/\\s+/g, \" \");" },
+      ],
+      hero: "A18",
+      media: [
+        { kind: "image", src: "media/cp-7-A18.png", caption: "Una conversación leída desde el log." },
+      ],
+      numbers: [
+        { label: "Ataques que pasan en una corrida", value: "18 de 18", source: "evals.js, corrida cp-7" },
+        { label: "ZDR de Groq", value: "prendido (Inference APIs, desde el 14 de noviembre de 2026)", source: "console.groq.com/settings/data-controls" },
+        { label: "Lo que Groq guarda sin ZDR", value: "entradas y salidas hasta 30 días, para confiabilidad", source: "console.groq.com/docs/your-data" },
+        { label: "Todo el bot, construido por el agente", value: "unos 50 min y US$ 9,35 en tokens a precio de API", source: "scripts/session-usage.py, del inicio a cp-7" },
+      ],
+      decisions: ["D022", "D023"],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 220, "tokensIn": 3148336, "tokensOut": 11839, "toolCalls": 12, "apiCostUsd": 1.04, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 10 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+    },
   ],
   decisions: [
     { id: "D001", date: "2026-11-14", by: "Mario", text: "Un consultorio dental ficticio, Doctor Sonrisa, con chat en su web.", why: "Un negocio que todos entienden, con datos privados de verdad (citas)." },
@@ -307,6 +339,8 @@ window.DEVLOG = {
     { id: "D019", date: "2026-11-14", by: "agente", text: "Además del límite por visitante, un presupuesto global un poco por debajo de los límites de Groq.", why: "Muchos visitantes juntos también gastan la cuota. Así el que responde 'intenta en un minuto' es el portero, no un error de Groq." },
     { id: "D020", date: "2026-11-14", by: "agente", text: "Contadores en D1, sin Durable Objects ni el Rate Limiting de Workers.", why: "D1 ya estaba, alcanza para un consultorio, y el Rate Limiting de Workers solo cuenta por 10 o 60 segundos: no sirve para el tope diario." },
     { id: "D021", date: "2026-11-14", by: "agente", text: "Los saludos se arreglan en el prompt del filtro, no con una regla de código que deje pasar los mensajes cortos.", why: "'2x+3=7' también es un mensaje corto." },
+    { id: "D022", date: "2026-11-14", by: "agente", text: "El log guarda un código corto de la IP, no la IP, y borra los mensajes a los 30 días.", why: "Alcanza para ver si un mismo visitante abusa, y guarda lo menos posible de datos personales." },
+    { id: "D023", date: "2026-11-14", by: "agente", text: "El log se escribe con waitUntil, después de responder.", why: "Escribir en D1 no le suma tiempo al visitante." },
   ],
   runbook: [
     { label: "Instalar", cmd: "pnpm install" },
@@ -314,7 +348,8 @@ window.DEVLOG = {
     { label: "Cargar documentos al RAG", cmd: "pnpm cli docs:load" },
     { label: "Probar una búsqueda", cmd: "pnpm cli docs:search \"dientes chuecos\"" },
     { label: "Correr local", cmd: "pnpm dev" },
-    { label: "Correr los ataques", cmd: "pnpm evals --cp cp-6" },
+    { label: "Correr los ataques", cmd: "pnpm evals --cp cp-7" },
+    { label: "Leer el log", cmd: "pnpm cli logs --last 20" },
     { label: "Volver a un paso", cmd: "git checkout cp-0" },
   ],
 };

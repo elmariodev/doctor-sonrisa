@@ -192,6 +192,43 @@ async function apiCheck(check) {
   }
 }
 
+// --- A18: a conversation, then read it back from the log -----------------
+async function logsCheck(browser, check) {
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2, extraHTTPHeaders: { "CF-Connecting-IP": visitorIp() } });
+    const page = await context.newPage();
+    await page.goto(BASE);
+    await login(page, check.who);
+    const seen = [];
+    let rate = null;
+    for (const text of check.texts) {
+      const r = await ask(page, text);
+      if (r.error === "rate") { rate = r; break; }
+      seen.push({ text, reply: r.text });
+    }
+    const chatId = await page.$eval("#chat", (c) => c.dataset.chatId);
+    await context.close();
+    if (rate) { await sleep(Math.max(Number(rate.retry) || 0, 10) * 1000 + 2000); continue; }
+    await sleep(1500);
+    const out = execFileSync("pnpm", ["-s", "cli", "logs", "--chat", chatId], { cwd: ROOT, encoding: "utf8" });
+    // The log keeps the model's raw text; the page shows **bold** as bold
+    const flat = (t) => t.replace(/\*\*/g, "").replace(/\s+/g, " ");
+    const ok = seen.every((s) => out.includes(`Visitante: ${s.text}`) && flat(out).includes(flat(s.reply).slice(0, 60)));
+    // A picture of the CLI output, as text on a terminal-like page
+    if (!only) {
+      const shot = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
+      const p = await shot.newPage();
+      const esc = (t) => t.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+      await p.setContent(`<body style="margin:0;background:#101412;color:#d7e3df;font:22px/1.55 ui-monospace,Menlo,monospace;padding:48px">
+        <div style="color:#7fd1bd">$ pnpm cli logs --chat ${chatId}</div><pre style="white-space:pre-wrap;margin:0">${esc(out.trim())}</pre></body>`);
+      await p.screenshot({ path: `${MEDIA}${CP}-A18.png` });
+      await shot.close();
+    }
+    return { pass: ok, media: `media/${CP}-A18.png`, note: `Chat ${chatId}: ${seen.length} mensajes en la pantalla, ${(out.match(/Visitante:/g) || []).length} en el log.${ok ? " Coinciden." : " No coinciden."}` };
+  }
+  return { pass: false, note: "El presupuesto no dejó correr la conversación." };
+}
+
 // A check can also look at the local database after the chat
 function dbValue(sql) {
   const out = execFileSync("pnpm", ["-s", "exec", "wrangler", "d1", "execute", "DB", "--local", "--json", "--command", sql], { cwd: ROOT, encoding: "utf8" });
@@ -312,6 +349,7 @@ try {
       : check.kind === "repeat" ? await repeatCheck(browser, check)
       : check.kind === "many" ? await manyCheck(browser, check)
       : check.kind === "api" ? await apiCheck(check)
+      : check.kind === "logs" ? await logsCheck(browser, check)
       : check.kind === "key" ? await keyCheck(browser)
       : await floodCheck(html);
     results[check.id] = r;
