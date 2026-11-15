@@ -78,7 +78,7 @@ async function ask(page, text, slow) {
     return { text: x.textContent, error: x.dataset.error || null, retry: x.dataset.retry || "" };
   });
   const meta = await api;
-  return { ...last, ms: Date.now() - t0, tools: meta.tools, filtered: meta.filtered, timing: meta.timing };
+  return { ...last, ms: Date.now() - t0, tools: meta.tools, filtered: meta.filtered, timing: meta.timing, sources: meta.sources, usage: meta.usage };
 }
 
 async function chatCheck(browser, check, { shots = true } = {}) {
@@ -117,6 +117,8 @@ async function chatCheck(browser, check, { shots = true } = {}) {
     if (r.tools?.length) result.tools = r.tools;
     if (r.filtered) result.filtered = true;
     if (r.timing) result.timing = r.timing;
+    if (r.sources?.length) result.sources = r.sources;
+    if (r.usage) result.usage = r.usage;
     if (check.who !== "invitado" && !loggedIn) result.note = "La página no tiene login: escribe como cualquier visitante.";
     if (r.error) result.note = `Error del chat: ${r.error}`;
     return result;

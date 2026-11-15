@@ -2,11 +2,14 @@
 // no patient id from the model: the patient comes from the session.
 import type { Session, Role } from "./auth";
 import { nowLocal, spoken } from "./clock";
+import { searchDocs } from "./rag";
+
+export type ToolContext = { db: D1Database; session: Session; env: { AI: Ai; VECTORIZE: VectorizeIndex }; sources: Set<string> };
 
 type Tool = {
   roles: Role[];
   schema: { type: "function"; function: { name: string; description: string; parameters: Record<string, unknown> } };
-  run: (args: any, ctx: { db: D1Database; session: Session }) => Promise<unknown>;
+  run: (args: any, ctx: ToolContext) => Promise<unknown>;
 };
 
 const SERVICES = ["valoración", "limpieza", "resina", "blanqueamiento", "control de ortodoncia", "extracción", "endodoncia"];
@@ -28,6 +31,20 @@ const appointmentsOf = async (db: D1Database, patientId: string) =>
     .map((a) => ({ cuando: spoken(a.starts_at), servicio: a.service }));
 
 export const TOOLS: Record<string, Tool> = {
+  info_negocio: {
+    roles: ["guest", "user", "admin"],
+    schema: { type: "function", function: {
+      name: "info_negocio",
+      description: "Busca en los documentos públicos del consultorio: horarios, dirección, precios, servicios, políticas de citas, formas de pago y cuidados. Úsala para cualquier dato del consultorio.",
+      parameters: { type: "object", properties: { pregunta: { type: "string", description: "Qué buscar, en palabras del paciente" } }, required: ["pregunta"] },
+    } },
+    run: async ({ pregunta }, { env, sources }) => {
+      const found = await searchDocs(env, String(pregunta || "").slice(0, 300));
+      found.forEach((f) => sources.add(f.doc));
+      return found.length ? { fragmentos: found.map((f) => ({ documento: f.doc, texto: f.text })) } : { fragmentos: [], nota: "No hay nada sobre eso en los documentos." };
+    },
+  },
+
   mis_citas: {
     roles: ["user"],
     schema: { type: "function", function: {

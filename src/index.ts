@@ -9,6 +9,8 @@ import { onTopic, OFF_TOPIC_REPLY } from "./filter";
 export interface Env {
   GROQ_API_KEY: string;
   DB: D1Database;
+  AI: Ai;
+  VECTORIZE: VectorizeIndex;
 }
 
 const json = (data: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -57,8 +59,8 @@ export default {
         const ok = await onTopic(env.GROQ_API_KEY, history);
         const filterMs = Date.now() - t0;
         if (!ok) return json({ reply: OFF_TOPIC_REPLY, filtered: true, timing: { filterMs } });
-        const { reply, tools } = await runAgent(env.GROQ_API_KEY, env.DB, session, history);
-        return json({ reply, tools, timing: { filterMs, agentMs: Date.now() - t0 - filterMs } });
+        const { reply, tools, sources, usage } = await runAgent(env, session, history);
+        return json({ reply, tools, sources, usage, timing: { filterMs, agentMs: Date.now() - t0 - filterMs } });
       } catch (e) {
         if (e instanceof UpstreamRateLimit) {
           return json({ error: "upstream_rate_limit", detail: e.detail, retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });

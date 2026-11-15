@@ -9,6 +9,10 @@
   // to deploy, "wrangler d1 create doctor-sonrisa" and paste its id here.
   "d1_databases": [
     { "binding": "DB", "database_name": "doctor-sonrisa", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "db/migrations" }
-  ]
+  ],
+  // RAG: embeddings with bge-m3 and the "doctor-sonrisa" index (1024 dimensions, cosine).
+  // Both run on Cloudflare even in "wrangler dev" ("remote": true).
+  "ai": { "binding": "AI", "remote": true },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "doctor-sonrisa", "remote": true }]
   // Secrets: GROQ_API_KEY ("wrangler secret put GROQ_API_KEY"; locally in .dev.vars)
 }

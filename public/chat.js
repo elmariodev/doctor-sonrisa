@@ -40,6 +40,12 @@ document.getElementById("form").addEventListener("submit", async (e) => {
     if (res.ok) {
       history.push({ role: "assistant", content: data.reply });
       bubble(data.reply, "bot");
+      if (data.sources?.length) {
+        const src = document.createElement("div");
+        src.className = "sources";
+        src.textContent = `Fuente: ${data.sources.join(", ")}`;
+        msgs.appendChild(src);
+      }
     } else {
       history.pop();
       if (res.status === 429) bubble(data.message || "Hay muchos mensajes en este momento. Intenta en un minuto.", "bot", { error: data.error === "upstream_rate_limit" ? "rate" : "limit", retry: data.retryAfter || "" });
