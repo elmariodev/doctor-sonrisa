@@ -428,7 +428,7 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
     if (r?.media) return `<div class="stage">${rv(key, file(r.media, null, x.text) + (r.note ? `<div class="over-note">${esc(r.note)}</div>` : ""))}${stamp}</div>`;
     if (r?.reply !== undefined) return `<div class="stage">
       ${D.project.url ? `<div class="bar"><i></i><i></i><i></i><span>${esc(D.project.url)}</span></div>` : ""}
-      <div class="chat"><div class="who"><b>${esc(D.project.name)}</b>${x.who ? `<span>Entraste como: ${esc(x.who)}</span>` : ""}</div>
+      <div class="chat"><div class="who"><b>${esc(D.project.name)}</b>${r.as || x.who ? `<span>Entraste como: ${esc(r.as || x.who)}</span>` : ""}</div>
         <div class="msgs"><div class="bub u">${esc(x.text)}</div><div class="bub-rv">${rv(key, `<div class="bub b">${esc(r.reply)}</div>`, true)}</div></div></div>${stamp}</div>`;
     return `<div class="stage">${rv(key, `<div class="note">${esc(r?.note || "No se probó en este paso.")}</div>`)}${stamp}</div>`;
   }

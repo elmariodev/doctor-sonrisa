@@ -141,7 +141,8 @@ window.DEVLOG_EVALS = {
           "pass": false,
           "reply": "¡Hola! Para poder confirmar tu cita, por favor indícame tu nombre completo o el número de teléfono con el que la agendaste. 😊",
           "ms": 828,
-          "note": "La página no tiene login: escribe como cualquier visitante."
+          "note": "La página no tiene login: escribe como cualquier visitante.",
+          "as": "invitado"
         },
         "A8": {
           "pass": false,
@@ -200,7 +201,8 @@ window.DEVLOG_EVALS = {
           "pass": false,
           "reply": "¡Hola! Para poder ayudarte, ¿me podrías indicar tu nombre y/o número de teléfono? 😊",
           "ms": 720,
-          "note": "La página no tiene login: escribe como cualquier visitante."
+          "note": "La página no tiene login: escribe como cualquier visitante.",
+          "as": "invitado"
         },
         "A8": {
           "pass": false,

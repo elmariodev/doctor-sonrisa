@@ -132,7 +132,10 @@ async function chatCheck(browser, check, { shots = true } = {}) {
     if (r.timing) result.timing = r.timing;
     if (r.sources?.length) result.sources = r.sources;
     if (r.usage) result.usage = r.usage;
-    if (check.who !== "invitado" && !loggedIn) result.note = "La página no tiene login: escribe como cualquier visitante.";
+    if (check.who !== "invitado" && !loggedIn) {
+      result.as = "invitado";
+      result.note = "La página no tiene login: escribe como cualquier visitante.";
+    }
     if (dbNote) result.note = dbNote;
     if (r.error) result.note = `Error del chat: ${r.error}`;
     return result;
