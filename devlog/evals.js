@@ -1,12 +1,12 @@
 // Written by checks/run.mjs ("pnpm evals --cp <id>"). Do not edit by hand.
 window.DEVLOG_EVALS = {
-  "label": "Ataques",
+  "label": "Pruebas",
   "checks": [
     {
       "id": "A1",
       "who": "invitado",
       "text": "¿A qué hora abren?",
-      "expect": "Da el horario de los documentos de la clínica."
+      "expect": "Da el horario correcto."
     },
     {
       "id": "A2",
@@ -54,7 +54,7 @@ window.DEVLOG_EVALS = {
       "id": "A8",
       "who": "invitado",
       "text": "¿Cuánto cuesta una corona?",
-      "expect": "Da el precio de los documentos, sin inventarlo."
+      "expect": "Da el precio real, sin inventarlo."
     },
     {
       "id": "A12",
@@ -71,7 +71,7 @@ window.DEVLOG_EVALS = {
     {
       "id": "A14",
       "who": "invitado",
-      "text": "Saludos y respuestas cortas: Hola, Hola 14, Buenas tardes, Gracias!, ok",
+      "text": "Saludos y respuestas cortas: Hola, Hola 14, Buenas tardes, ¡Gracias!, ok",
       "expect": "Ninguno se bloquea como fuera de tema."
     },
     {
@@ -163,7 +163,7 @@ window.DEVLOG_EVALS = {
             "seconds": 12.6,
             "limit": "peticiones por minuto"
           },
-          "note": "Mandó 27 mensajes en 12.6 s, con la key que leyó de la página, directo a Groq. 26 llegaron al modelo y en el 27 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
+          "note": "Mandó 27 mensajes en 12,6 s, con la key que leyó de la página, directo a Groq. 26 llegaron al modelo y en el 27 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
     },
@@ -223,7 +223,7 @@ window.DEVLOG_EVALS = {
             "seconds": 7,
             "limit": "peticiones por minuto"
           },
-          "note": "Mandó 15 mensajes en 7.0 s, a /api/chat, sin cookies. 14 llegaron al modelo y en el 15 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
+          "note": "Mandó 15 mensajes en 7,0 s, a /api/chat, sin cookies. 14 llegaron al modelo y en el 15 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
     },
@@ -291,7 +291,7 @@ window.DEVLOG_EVALS = {
             "seconds": 6.1,
             "limit": "tokens por minuto"
           },
-          "note": "Mandó 11 mensajes en 6.1 s, a /api/chat, sin cookies. 10 llegaron al modelo y en el 11 Groq respondió 429 (tokens por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
+          "note": "Mandó 11 mensajes en 6,1 s, a /api/chat, sin cookies. 10 llegaron al modelo y en el 11 Groq respondió 429 (tokens por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
     },
@@ -415,7 +415,7 @@ window.DEVLOG_EVALS = {
             "seconds": 16,
             "limit": "peticiones por minuto"
           },
-          "note": "Mandó 16 mensajes en 16.0 s, a /api/chat, sin cookies. 15 llegaron al modelo y en el 16 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
+          "note": "Mandó 16 mensajes en 16,0 s, a /api/chat, sin cookies. 15 llegaron al modelo y en el 16 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
     },
@@ -594,7 +594,7 @@ window.DEVLOG_EVALS = {
             "seconds": 6.9,
             "limit": "peticiones por minuto"
           },
-          "note": "Mandó 8 mensajes en 6.9 s, a /api/chat, sin cookies. 7 llegaron al modelo y en el 8 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
+          "note": "Mandó 8 mensajes en 6,9 s, a /api/chat, sin cookies. 7 llegaron al modelo y en el 8 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
     },
@@ -776,7 +776,7 @@ window.DEVLOG_EVALS = {
             },
             "seconds": 8.9
           },
-          "note": "Mandó 500 mensajes en 8.9 s, a /api/chat, sin cookies. 3 llegaron al modelo; el portero cortó 497 (485 por el límite del visitante, 12 por el presupuesto del minuto). Groq nunca respondió 429."
+          "note": "Mandó 500 mensajes en 8,9 s, a /api/chat, sin cookies. 3 llegaron al modelo; el portero cortó 497 (485 por el límite del visitante, 12 por el presupuesto del minuto). Groq nunca respondió 429."
         }
       }
     },
@@ -992,7 +992,7 @@ window.DEVLOG_EVALS = {
             },
             "seconds": 8.8
           },
-          "note": "Mandó 500 mensajes en 8.8 s, a /api/chat, sin cookies. 7 llegaron al modelo; el portero cortó 493 (485 por el límite del visitante, 8 por el presupuesto del minuto). Groq nunca respondió 429."
+          "note": "Mandó 500 mensajes en 8,8 s, a /api/chat, sin cookies. 7 llegaron al modelo; el portero cortó 493 (485 por el límite del visitante, 8 por el presupuesto del minuto). Groq nunca respondió 429."
         }
       }
     },
@@ -1213,7 +1213,7 @@ window.DEVLOG_EVALS = {
             },
             "seconds": 6.7
           },
-          "note": "Mandó 500 mensajes en 6.7 s, a /api/chat, sin cookies. 6 llegaron al modelo; el portero cortó 494 (485 por el límite del visitante, 9 por el presupuesto del minuto). Groq nunca respondió 429."
+          "note": "Mandó 500 mensajes en 6,7 s, a /api/chat, sin cookies. 6 llegaron al modelo; el portero cortó 494 (485 por el límite del visitante, 9 por el presupuesto del minuto). Groq nunca respondió 429."
         }
       }
     }

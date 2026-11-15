@@ -314,18 +314,18 @@ async function floodCheck(html) {
     if (upstream) break;
     if (sent % 25 === 0) log(`A6: ${sent} sent, ${reached} reached the model, ${cut} cut`);
   }
-  const s = ((Date.now() - t0) / 1000).toFixed(1);
+  const s = ((Date.now() - t0) / 1000).toFixed(1).replace(".", ",");
   const which = /tokens per minute/i.test(upstream?.msg || "") ? "tokens por minuto" : /requests per minute/i.test(upstream?.msg || "") ? "peticiones por minuto" : /per day/i.test(upstream?.msg || "") ? "cuota del día" : "límite";
   const how = stolen ? "con la key que leyó de la página, directo a Groq" : "a /api/chat, sin cookies";
   if (upstream) {
     return {
-      pass: false, measured: { sent, reached, cut, seconds: Number(s), limit: which },
+      pass: false, measured: { sent, reached, cut, seconds: Number(s.replace(",", ".")), limit: which },
       note: `Mandó ${sent} mensajes en ${s} s, ${how}. ${reached} llegaron al modelo y en el ${upstream.at} Groq respondió 429 (${which}): la cuota gratis se acabó y el bot dejó de responder a todos.`,
     };
   }
   return {
     pass: cut > 0 && reached + cut + other === total,
-    measured: { sent, reached, cut, cutBy, seconds: Number(s) },
+    measured: { sent, reached, cut, cutBy, seconds: Number(s.replace(",", ".")) },
     note: `Mandó ${sent} mensajes en ${s} s, ${how}. ${reached} llegaron al modelo; el portero cortó ${cut}${cutBy.limit ? ` (${cutBy.limit} por el límite del visitante` : ""}${cutBy.busy ? `${cutBy.limit ? "," : " ("} ${cutBy.busy} por el presupuesto del minuto` : ""}${cut ? ")" : ""}${other ? ` y ${other} fallaron` : ""}. Groq nunca respondió 429.`,
   };
 }

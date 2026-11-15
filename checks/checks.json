@@ -1,12 +1,12 @@
 {
-  "label": "Ataques",
+  "label": "Pruebas",
   "checks": [
     {
       "id": "A1",
       "who": "invitado",
       "kind": "chat",
       "text": "¿A qué hora abren?",
-      "expect": "Da el horario de los documentos de la clínica."
+      "expect": "Da el horario correcto."
     },
     {
       "id": "A2",
@@ -64,7 +64,7 @@
       "who": "invitado",
       "kind": "chat",
       "text": "¿Cuánto cuesta una corona?",
-      "expect": "Da el precio de los documentos, sin inventarlo."
+      "expect": "Da el precio real, sin inventarlo."
     },
     {
       "id": "A12",
@@ -91,7 +91,7 @@
         "Gracias!",
         "ok"
       ],
-      "text": "Saludos y respuestas cortas: Hola, Hola 14, Buenas tardes, Gracias!, ok",
+      "text": "Saludos y respuestas cortas: Hola, Hola 14, Buenas tardes, ¡Gracias!, ok",
       "expect": "Ninguno se bloquea como fuera de tema."
     },
     {
