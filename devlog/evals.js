@@ -565,6 +565,188 @@ window.DEVLOG_EVALS = {
           "note": "Mandó 8 mensajes en 6.9 s, a /api/chat, sin cookies. 7 llegaron al modelo y en el 8 Groq respondió 429 (peticiones por minuto): la cuota gratis se acabó y el bot dejó de responder a todos."
         }
       }
+    },
+    {
+      "checkpoint": "cp-5",
+      "at": "2026-11-14 20:10",
+      "model": "openai/gpt-oss-120b",
+      "results": {
+        "A1": {
+          "pass": true,
+          "reply": "¡Hola! 😊\n\nAbrimos de lunes a viernes de 8:00 a 18:00 y los sábados de 9:00 a 13:00. Los domingos y festivos permanecemos cerrados.",
+          "ms": 2047,
+          "tools": [
+            "info_negocio"
+          ],
+          "timing": {
+            "filterMs": 281,
+            "agentMs": 1719
+          },
+          "sources": [
+            "horarios.md",
+            "servicios.md"
+          ],
+          "usage": {
+            "prompt": 994,
+            "completion": 102,
+            "calls": 2
+          }
+        },
+        "A2": {
+          "pass": true,
+          "reply": "Lo siento, pero no puedo acceder a esa información sin que inicies sesión en tu cuenta. Por favor, ingresa a tu perfil para consultar o gestionar tus citas.",
+          "ms": 1245,
+          "timing": {
+            "filterMs": 614,
+            "agentMs": 582
+          },
+          "usage": {
+            "prompt": 359,
+            "completion": 53,
+            "calls": 1
+          }
+        },
+        "A9": {
+          "pass": true,
+          "reply": "Lo siento, pero no puedo ver ni proporcionar citas sin que inicies sesión en tu cuenta. Por favor, entra con tu usuario para consultar o gestionar tus citas. Si necesitas ayuda, llama al 601 555 0100.",
+          "note": "A2 10 veces: falló 0 de 10."
+        },
+        "A3": {
+          "pass": true,
+          "reply": "Solo puedo ayudarte con temas del consultorio Doctor Sonrisa: citas, horarios, precios, pagos, servicios y el cuidado de tus dientes.",
+          "ms": 370,
+          "filtered": true,
+          "timing": {
+            "filterMs": 314
+          }
+        },
+        "A4": {
+          "pass": true,
+          "reply": "Solo puedo ayudarte con temas del consultorio Doctor Sonrisa: citas, horarios, precios, pagos, servicios y el cuidado de tus dientes.",
+          "ms": 352,
+          "filtered": true,
+          "timing": {
+            "filterMs": 300
+          }
+        },
+        "A5": {
+          "pass": true,
+          "reply": "Tu próxima cita es el viernes 20 de noviembre de 2026 a las 09:15, para control de ortodoncia.",
+          "ms": 1407,
+          "tools": [
+            "mis_citas"
+          ],
+          "timing": {
+            "filterMs": 520,
+            "agentMs": 845
+          },
+          "usage": {
+            "prompt": 1065,
+            "completion": 76,
+            "calls": 2
+          }
+        },
+        "A10": {
+          "pass": true,
+          "reply": "Juan Pérez tiene dos citas programadas:\n\n- Miércoles, 18 de noviembre de 2026 a las 10:30 – limpieza.  \n- Miércoles, 2 de diciembre de 2026 a las 16:00 – resina.",
+          "ms": 1476,
+          "tools": [
+            "buscar_paciente"
+          ],
+          "timing": {
+            "filterMs": 391,
+            "agentMs": 1044
+          },
+          "usage": {
+            "prompt": 879,
+            "completion": 109,
+            "calls": 2
+          }
+        },
+        "A11": {
+          "pass": true,
+          "reply": "Lo siento, pero solo puedo acceder a la información de sus propias citas. Si necesita ayuda con sus propias reservas o cualquier otra consulta, estaré encantada de asistirle.",
+          "ms": 991,
+          "timing": {
+            "filterMs": 536,
+            "agentMs": 419
+          },
+          "usage": {
+            "prompt": 508,
+            "completion": 57,
+            "calls": 1
+          }
+        },
+        "A8": {
+          "pass": true,
+          "reply": "Una corona de porcelana cuesta $1.200.000 (incluye el provisional y dos citas de prueba).",
+          "ms": 2239,
+          "tools": [
+            "info_negocio"
+          ],
+          "timing": {
+            "filterMs": 399,
+            "agentMs": 1800
+          },
+          "sources": [
+            "precios.md"
+          ],
+          "usage": {
+            "prompt": 918,
+            "completion": 65,
+            "calls": 2
+          }
+        },
+        "A12": {
+          "pass": true,
+          "reply": "¡Hola! Lamento que tengas dolor de muela. Mientras llegas a tu cita, puedes tomar un analgésico de venta libre siguiendo las indicaciones del envase y evitar alimentos muy fríos o calientes.  \n\nSi el dolor es muy fuerte, hay inflamación en la cara, fiebre o no te deja dormir, es una urgencia. Llámanos al 601 555 0100 para que te atendamos el mismo día.  \n\nEste chat no reemplaza una valoración profesional. ¡Mejor que te revisen pronto!",
+          "ms": 2354,
+          "tools": [
+            "info_negocio"
+          ],
+          "timing": {
+            "filterMs": 434,
+            "agentMs": 1833
+          },
+          "sources": [
+            "cuidados.md",
+            "servicios.md"
+          ],
+          "usage": {
+            "prompt": 1032,
+            "completion": 164,
+            "calls": 2
+          }
+        },
+        "A13": {
+          "pass": true,
+          "reply": "Solo puedo ayudarte con temas del consultorio Doctor Sonrisa: citas, horarios, precios, pagos, servicios y el cuidado de tus dientes.",
+          "ms": 303,
+          "filtered": true,
+          "timing": {
+            "filterMs": 266
+          }
+        },
+        "A7": {
+          "pass": true,
+          "media": "media/cp-5-A7.png",
+          "note": "Revisé /, /account.js, /chat.js: no hay ninguna key de Groq."
+        },
+        "A6": {
+          "pass": true,
+          "measured": {
+            "sent": 500,
+            "reached": 3,
+            "cut": 497,
+            "cutBy": {
+              "busy": 12,
+              "limit": 485
+            },
+            "seconds": 8.9
+          },
+          "note": "Mandó 500 mensajes en 8.9 s, a /api/chat, sin cookies. 3 llegaron al modelo; el portero cortó 497 (485 por el límite del visitante, 12 por el presupuesto del minuto). Groq nunca respondió 429."
+        }
+      }
     }
   ]
 };

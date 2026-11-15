@@ -21,6 +21,12 @@ const ROOT = new URL("../", import.meta.url).pathname;
 const MEDIA = `${ROOT}devlog/media/`;
 const EVALS = `${ROOT}devlog/evals.js`;
 const KEY_RE = /gsk_[A-Za-z0-9]{20,}/;
+// Each browser is a different visitor: a test IP (198.51.100.0/24, TEST-NET-2)
+// in CF-Connecting-IP. Cloudflare sets that header itself in production;
+// "wrangler dev" passes it through, which lets the checks act as many visitors.
+let visitorN = 0;
+const visitorIp = () => `198.51.100.${(++visitorN % 250) + 1}`;
+const ATTACKER_IP = "203.0.113.66";
 
 const args = Object.fromEntries(process.argv.slice(2).join(" ").split("--").filter(Boolean)
   .map((a) => { const [k, ...v] = a.trim().split(/\s+/); return [k, v.join(" ") || true]; }));
@@ -86,6 +92,7 @@ async function chatCheck(browser, check, { shots = true } = {}) {
   for (let attempt = 1; attempt <= 6; attempt++) {
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2, locale: "es-CO",
+      extraHTTPHeaders: { "CF-Connecting-IP": visitorIp() },
       ...(clip ? { recordVideo: { dir: `${MEDIA}.tmp/`, size: { width: 1920, height: 1080 } } } : {}),
     });
     const page = await context.newPage();
@@ -188,6 +195,7 @@ async function floodCheck(html) {
   const stolen = html.match(KEY_RE)?.[0];
   const total = 500, t0 = Date.now();
   let sent = 0, reached = 0, cut = 0, upstream = null, other = 0;
+  const cutBy = {};
   for (; sent < total;) {
     sent++;
     let res, body;
@@ -204,13 +212,13 @@ async function floodCheck(html) {
       else other++;
     } else {
       res = await fetch(`${BASE}/api/chat`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": ATTACKER_IP },
         body: JSON.stringify({ messages: [{ role: "user", content: "Hola" }] }),
       });
       body = await res.json().catch(() => ({}));
       if (res.ok) reached++;
       else if (body.error === "upstream_rate_limit") upstream = { at: sent, msg: body.detail || "" };
-      else if (res.status === 429) cut++;
+      else if (res.status === 429) { cut++; cutBy[body.error] = (cutBy[body.error] || 0) + 1; }
       else other++;
     }
     if (upstream) break;
@@ -227,8 +235,8 @@ async function floodCheck(html) {
   }
   return {
     pass: cut > 0 && reached + cut + other === total,
-    measured: { sent, reached, cut, seconds: Number(s) },
-    note: `Mandó ${sent} mensajes en ${s} s, ${how}. ${reached} llegaron al modelo; el portero cortó ${cut}${other ? ` y ${other} fallaron` : ""}. Groq nunca respondió 429.`,
+    measured: { sent, reached, cut, cutBy, seconds: Number(s) },
+    note: `Mandó ${sent} mensajes en ${s} s, ${how}. ${reached} llegaron al modelo; el portero cortó ${cut}${cutBy.limit ? ` (${cutBy.limit} por el límite del visitante` : ""}${cutBy.busy ? `${cutBy.limit ? "," : " ("} ${cutBy.busy} por el presupuesto del minuto` : ""}${cut ? ")" : ""}${other ? ` y ${other} fallaron` : ""}. Groq nunca respondió 429.`,
   };
 }
 

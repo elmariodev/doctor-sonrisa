@@ -4,8 +4,9 @@ import { systemPrompt } from "./prompt";
 import { TOOLS, toolsFor } from "./tools";
 import type { Session } from "./auth";
 import type { Env } from "./index";
+import type { Budget } from "./limits";
 
-export async function runAgent(env: Env, session: Session, history: Message[]) {
+export async function runAgent(env: Env, session: Session, history: Message[], budget?: Budget) {
   const allowed = toolsFor(session.role);
   const messages: Message[] = [{ role: "system", content: systemPrompt(session) }, ...history];
   const used: string[] = [];
@@ -17,7 +18,7 @@ export async function runAgent(env: Env, session: Session, history: Message[]) {
       messages,
       max_completion_tokens: 800,
       ...(allowed.length ? { tools: allowed.map(([, t]) => t.schema), tool_choice: "auto" } : {}),
-    });
+    }, budget);
     usage.prompt += data.usage?.prompt_tokens || 0;
     usage.completion += data.usage?.completion_tokens || 0;
     usage.calls++;

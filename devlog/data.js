@@ -223,7 +223,37 @@ window.DEVLOG = {
       decisions: ["D016", "D017"],
       build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 295, "tokensIn": 2974027, "tokensOut": 13315, "toolCalls": 13, "apiCostUsd": 1.03, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 12 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
     },
-    { id: "cp-5", title: "Límite de mensajes", status: "todo", goal: "Un tope de mensajes por visitante.", built: [], broke: [], fixed: [], media: [], numbers: [], decisions: [], build: [] },
+    {
+      id: "cp-5", title: "Límite de mensajes", status: "done", date: "2026-11-14", commit: "COMMIT_CP5",
+      goal: "Un tope de mensajes por visitante, y un presupuesto para que nadie gaste la cuota gratis.",
+      built: [
+        "15 mensajes por hora por visitante. El visitante es la IP que ve Cloudflare: borrar las cookies no sirve para saltárselo.",
+        "Un presupuesto por modelo: 25 llamadas y 6.000 tokens por minuto, 900 llamadas y 180.000 tokens por día. Groq da 30, 8.000, 1.000 y 200.000.",
+        "Antes de cada llamada a Groq, el portero la reserva. Si no hay presupuesto, responde 'intenta en un minuto' sin llamar a Groq.",
+        "Los contadores viven en D1, con ventanas por hora, minuto y día.",
+      ],
+      broke: [
+        { check: "A1", text: "En la primera corrida falló: 'Abrimos los sábados de 9:00 a 13:00'. Pero hoy es sábado y el prompt sabe la fecha: la respuesta era buena. La regla solo aceptaba el horario de lunes a viernes." },
+        { check: "A5", text: "El presupuesto del minuto también frena a los propios ataques: A5 tuvo que esperar 37 s para correr." },
+        { check: "A6", text: "En el clip, a 'Hola 14' el filtro respondió que solo habla del consultorio: bloqueó un saludo. Queda como ataque nuevo para cp-6." },
+      ],
+      fixed: [
+        { text: "El portero cuenta al visitante antes de todo, y reserva cada llamada antes de hacerla.", files: ["src/index.ts", "src/limits.ts", "src/groq.ts"], code: "const quota = await countVisitor(env.DB, visitor);\nif (!quota.ok) return json({ error: \"limit\" }, 429);\n// in groq(): reserve first, or refuse without calling\nawait budget?.reserve(model);" },
+        { text: "A1 acepta un horario completo: de lunes a viernes o del sábado.", files: ["checks/judges.mjs"], code: "A1: (r) => (8 ... 18) || (9 ... 13)" },
+      ],
+      hero: "A6",
+      media: [
+        { kind: "video", src: "media/cp-5-A6.webm", caption: "Un visitante manda mensajes seguidos hasta que el portero lo corta." },
+      ],
+      numbers: [
+        { label: "De 500 mensajes seguidos, llegaron al modelo", value: "3", source: "evals.js, corrida cp-5 (A6)" },
+        { label: "Cortados por el portero", value: "497: 485 por el límite del visitante y 12 por el presupuesto del minuto", source: "evals.js, corrida cp-5 (A6)" },
+        { label: "Respuestas 429 de Groq", value: "0 (antes de cp-5, siempre)", source: "evals.js, corridas cp-0 a cp-5 (A6)" },
+        { label: "Mensajes por minuto para todo el bot", value: "unos 12: 25 llamadas por minuto, y cada mensaje usa una o dos al agente", source: "src/limits.ts; usage.calls en evals.js, corrida cp-4" },
+      ],
+      decisions: ["D018", "D019", "D020"],
+      build: [{"model": "Opus 5.5", "harness": "Claude Code", "seconds": 321, "tokensIn": 1916849, "tokensOut": 13950, "toolCalls": 8, "apiCostUsd": 0.83, "source": "8c44b97d-4dc1-4a43-a420-265cc4fe403e.jsonl, 7 requests; prices platform.claude.com/docs/en/about-claude/pricing"}],
+    },
     { id: "cp-6", title: "Evals", status: "todo", goal: "Todos los ataques, pasa o falla, en una corrida.", built: [], broke: [], fixed: [], media: [], numbers: [], decisions: [], build: [] },
     { id: "cp-7", title: "Logs y ZDR", status: "todo", goal: "Ver qué pasó en cada chat, sin que el proveedor guarde nada.", built: [], broke: [], fixed: [], media: [], numbers: [], decisions: [], build: [] },
   ],
@@ -245,6 +275,9 @@ window.DEVLOG = {
     { id: "D015", date: "2026-11-14", by: "agente", text: "Si el filtro falla o responde algo raro, el mensaje no pasa.", why: "Es mejor un 'no te entendí' que dejar pasar una tarea o un ataque." },
     { id: "D016", date: "2026-11-14", by: "agente", text: "Un párrafo por trozo, con el título del documento adelante.", why: "Los documentos ya están escritos en párrafos de una idea, y el título ayuda a que 'precio' encuentre precios.md." },
     { id: "D017", date: "2026-11-14", by: "agente", text: "La búsqueda ignora resultados con similitud menor a 0,4.", why: "Mejor 'no está en los documentos' que darle al modelo un párrafo que no tiene que ver." },
+    { id: "D018", date: "2026-11-14", by: "agente", text: "El visitante se cuenta por IP, no por cookie.", why: "Un script no guarda cookies: un límite por cookie no frena a nadie. En producción la IP la pone Cloudflare y el cliente no la puede cambiar." },
+    { id: "D019", date: "2026-11-14", by: "agente", text: "Además del límite por visitante, un presupuesto global un poco por debajo de los límites de Groq.", why: "Muchos visitantes juntos también gastan la cuota. Así el que responde 'intenta en un minuto' es el portero, no un error de Groq." },
+    { id: "D020", date: "2026-11-14", by: "agente", text: "Contadores en D1, sin Durable Objects ni el Rate Limiting de Workers.", why: "D1 ya estaba, alcanza para un consultorio, y el Rate Limiting de Workers solo cuenta por 10 o 60 segundos: no sirve para el tope diario." },
   ],
   runbook: [
     { label: "Instalar", cmd: "pnpm install" },
@@ -252,7 +285,7 @@ window.DEVLOG = {
     { label: "Cargar documentos al RAG", cmd: "pnpm cli docs:load" },
     { label: "Probar una búsqueda", cmd: "pnpm cli docs:search \"dientes chuecos\"" },
     { label: "Correr local", cmd: "pnpm dev" },
-    { label: "Correr los ataques", cmd: "pnpm evals --cp cp-4" },
+    { label: "Correr los ataques", cmd: "pnpm evals --cp cp-5" },
     { label: "Volver a un paso", cmd: "git checkout cp-0" },
   ],
 };

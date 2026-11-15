@@ -1,10 +1,12 @@
 // The gate ("el portero"): the only thing that talks to Groq. It holds the
 // key as a secret, reads the session cookie to know who is writing, asks
 // the topic filter, and only then runs the agent with the tools of that role.
+// It also counts: messages per visitor and Groq calls and tokens per minute and day.
 import { UpstreamRateLimit, type Message } from "./groq";
 import { getSession, login, logout, sessionCookie, clearCookie } from "./auth";
 import { runAgent } from "./agent";
 import { onTopic, OFF_TOPIC_REPLY } from "./filter";
+import { countVisitor, budget, Busy } from "./limits";
 
 export interface Env {
   GROQ_API_KEY: string;
@@ -54,14 +56,24 @@ export default {
       const history = readHistory(await request.json().catch(() => null));
       if (!history) return json({ error: "bad_request" }, 400);
       const session = await getSession(request, env.DB);
+      // Who is the visitor: the IP Cloudflare saw (a client cannot set it in production)
+      const visitor = request.headers.get("CF-Connecting-IP") || "local";
+      const quota = await countVisitor(env.DB, visitor);
+      if (!quota.ok) {
+        return json({ error: "limit", message: "Llegaste al límite de mensajes por ahora. Si necesitas algo urgente, llámanos al 601 555 0100.", retryAfter: quota.retryAfter }, 429, { "Retry-After": String(quota.retryAfter) });
+      }
+      const spend = budget(env.DB);
       try {
         const t0 = Date.now();
-        const ok = await onTopic(env.GROQ_API_KEY, history);
+        const ok = await onTopic(env.GROQ_API_KEY, history, spend);
         const filterMs = Date.now() - t0;
         if (!ok) return json({ reply: OFF_TOPIC_REPLY, filtered: true, timing: { filterMs } });
-        const { reply, tools, sources, usage } = await runAgent(env, session, history);
+        const { reply, tools, sources, usage } = await runAgent(env, session, history, spend);
         return json({ reply, tools, sources, usage, timing: { filterMs, agentMs: Date.now() - t0 - filterMs } });
       } catch (e) {
+        if (e instanceof Busy) {
+          return json({ error: "busy", message: "Hay muchos mensajes en este momento. Intenta en un minuto.", retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });
+        }
         if (e instanceof UpstreamRateLimit) {
           return json({ error: "upstream_rate_limit", detail: e.detail, retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });
         }

@@ -48,7 +48,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
       }
     } else {
       history.pop();
-      if (res.status === 429) bubble(data.message || "Hay muchos mensajes en este momento. Intenta en un minuto.", "bot", { error: data.error === "upstream_rate_limit" ? "rate" : "limit", retry: data.retryAfter || "" });
+      if (res.status === 429) bubble(data.message || "Hay muchos mensajes en este momento. Intenta en un minuto.", "bot", { error: data.error === "limit" ? "limit" : "rate", retry: data.retryAfter || "" });
       else bubble("Algo falló. Intenta de nuevo.", "bot", { error: "server" });
     }
   } catch {
