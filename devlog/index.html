@@ -350,7 +350,7 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
         <div class="tiles">
           <div class="tile"><div class="label">Pasos listos</div><div class="n">${done}<small> / ${D.checkpoints.length}</small></div></div>
           <div class="tile"><div class="label">${esc(CHECKS)} que pasan</div><div class="n">${lastRun ? passCount(lastRun) : "-"}<small> / ${E.checks.length}</small></div>
-            <div class="src">${lastRun ? `run ${esc(lastRun.checkpoint)} · ${esc(lastRun.at)}` : "sin corridas"}</div></div>
+            <div class="src">${lastRun ? `ronda ${esc(lastRun.checkpoint)} · ${esc(lastRun.at)}` : "sin rondas"}</div></div>
         </div>
       </section>
       <div class="card"><div class="label">Todo el build, hasta ahora</div><div class="scroll-x">${builds(totals(), "total")}</div></div>
@@ -365,7 +365,9 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
   function checkpoint(c) {
     const i = D.checkpoints.indexOf(c), run = runOf(c.id), pk = K(c.id);
     const ch = D.chapters.find((x) => x.checkpoints.includes(c.id));
-    if (!picked[pk]) picked[pk] = run && c.hero ? { check: c.hero } : c.media?.length ? { media: 0 } : run ? { check: E.checks[0]?.id } : {};
+    // Only the checks that ran on this step: later checks did not exist yet
+    const ran = run ? E.checks.filter((x) => typeof run.results[x.id]?.pass === "boolean") : [];
+    if (!picked[pk]) picked[pk] = run && c.hero ? { check: c.hero } : c.media?.length ? { media: 0 } : ran.length ? { check: ran[0].id } : {};
     const list = (items) => items?.length ? `<ul class="plain">${items.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : `<p class="empty">Todavía nada.</p>`;
     const broke = c.broke?.length ? c.broke.map((b) => `<p>${b.check ? `<span class="tag">${esc(b.check)}</span>` : ""}${esc(b.text)}</p>`).join("") : `<p class="empty">Nada todavía.</p>`;
     const n = passCount(run);
@@ -379,11 +381,11 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
         <div>
           <div class="stage-head">
             <div><span class="label" style="margin:0">${esc(CHECKS)}</span>
-              <span class="src">${run ? ` run ${esc(run.at)}${run.model ? ` · ${esc(run.model)}` : ""}` : " sin corrida en este paso"}</span></div>
-            ${run ? rv(`score-${c.id}`, `<span class="verdict">${n} / ${E.checks.length} pasan</span>`, true) : ""}
+              <span class="src">${run ? ` ronda ${esc(run.at)}${run.model ? ` · ${esc(run.model)}` : ""}` : " sin ronda en este paso"}</span></div>
+            ${run ? rv(`score-${c.id}`, `<span class="verdict">${n} / ${ran.length} pasan</span>`, true) : ""}
           </div>
           ${stage(c)}
-          ${run ? `<div class="chips">${E.checks.map((x) => { const v = shown.has(K(`res-${c.id}-${x.id}`)) ? verdict(run.results[x.id]) : "";
+          ${ran.length ? `<div class="chips">${ran.map((x) => { const v = shown.has(K(`res-${c.id}-${x.id}`)) ? verdict(run.results[x.id]) : "";
             return `<button class="chip ${v}" aria-pressed="${picked[pk].check === x.id}" data-check="${x.id}">
               <span class="chip-id">${esc(x.id)}${x.who ? ` · ${esc(x.who)}` : ""}<i>${v === "pass" ? "✓" : v === "fail" ? "✗" : ""}</i></span>
               <span class="chip-t">${esc(x.text)}</span></button>`; }).join("")}</div>` : ""}
@@ -428,7 +430,7 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
       ${D.project.url ? `<div class="bar"><i></i><i></i><i></i><span>${esc(D.project.url)}</span></div>` : ""}
       <div class="chat"><div class="who"><b>${esc(D.project.name)}</b>${x.who ? `<span>Entraste como: ${esc(x.who)}</span>` : ""}</div>
         <div class="msgs"><div class="bub u">${esc(x.text)}</div><div class="bub-rv">${rv(key, `<div class="bub b">${esc(r.reply)}</div>`, true)}</div></div></div>${stamp}</div>`;
-    return `<div class="stage">${rv(key, `<div class="note">${esc(r?.note || "Sin corrida todavía.")}</div>`)}${stamp}</div>`;
+    return `<div class="stage">${rv(key, `<div class="note">${esc(r?.note || "No se probó en este paso.")}</div>`)}${stamp}</div>`;
   }
 
   // Evals: every check against every checkpoint; each column behind its eye
@@ -436,7 +438,7 @@ const picked = {};         // "<project>:<checkpoint>" -> what the stage shows
     const open = (c) => shown.has(K(`col-${c.id}`));
     const cell = (cp, x) => { const v = verdict(runOf(cp.id)?.results[x.id]) || "none";
       return `<td class="${open(cp) || v === "none" ? "" : "shut-cell"}"><a class="cell ${v}" href="${to(cp.id)}">${v === "pass" ? "✓" : v === "fail" ? "✗" : "·"}</a></td>`; };
-    return `<h1 class="sec-title">Evals</h1><p class="sec-sub">Las mismas ${esc(CHECKS.toLowerCase())} contra cada paso. Cada columna es la última corrida de ese paso; el ojo la muestra.</p>
+    return `<h1 class="sec-title">Evals</h1><p class="sec-sub">Las mismas ${esc(CHECKS.toLowerCase())} contra cada paso. Cada columna es la última ronda de ese paso; el ojo la muestra.</p>
       <div class="card scroll-x"><table class="matrix"><thead><tr><th>Prueba</th><th>${E.checks.some((x) => x.who) ? "Quién" : ""}</th>${D.checkpoints.map((c, i) =>
         `<th>${i}${runOf(c.id) && !open(c) ? `<br><button class="col-eye" data-show="${K(`col-${c.id}`)}" aria-label="Mostrar paso ${i}">${EYE}</button>` : ""}</th>`).join("")}</tr></thead>
       <tbody>${E.checks.map((x) => `<tr><td>${esc(x.text)}</td><td>${x.who ? `<span class="who-tag">${esc(x.who)}</span>` : ""}</td>${D.checkpoints.map((c) => cell(c, x)).join("")}</tr>`).join("")}</tbody>
