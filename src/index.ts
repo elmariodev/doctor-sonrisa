@@ -1,9 +1,10 @@
 // The gate ("el portero"): the only thing that talks to Groq. It holds the
-// key as a secret, reads the session cookie to know who is writing, and
-// gives the agent only the tools of that role.
+// key as a secret, reads the session cookie to know who is writing, asks
+// the topic filter, and only then runs the agent with the tools of that role.
 import { UpstreamRateLimit, type Message } from "./groq";
 import { getSession, login, logout, sessionCookie, clearCookie } from "./auth";
 import { runAgent } from "./agent";
+import { onTopic, OFF_TOPIC_REPLY } from "./filter";
 
 export interface Env {
   GROQ_API_KEY: string;
@@ -52,8 +53,12 @@ export default {
       if (!history) return json({ error: "bad_request" }, 400);
       const session = await getSession(request, env.DB);
       try {
+        const t0 = Date.now();
+        const ok = await onTopic(env.GROQ_API_KEY, history);
+        const filterMs = Date.now() - t0;
+        if (!ok) return json({ reply: OFF_TOPIC_REPLY, filtered: true, timing: { filterMs } });
         const { reply, tools } = await runAgent(env.GROQ_API_KEY, env.DB, session, history);
-        return json({ reply, tools });
+        return json({ reply, tools, timing: { filterMs, agentMs: Date.now() - t0 - filterMs } });
       } catch (e) {
         if (e instanceof UpstreamRateLimit) {
           return json({ error: "upstream_rate_limit", detail: e.detail, retryAfter: e.retryAfter }, 429, { "Retry-After": String(e.retryAfter) });

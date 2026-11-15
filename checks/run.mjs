@@ -67,6 +67,9 @@ async function ask(page, text, slow) {
   if (slow) { await page.click("#msg"); await page.keyboard.type(text, { delay: 60 }); await sleep(400); }
   else await page.fill("#msg", text);
   const t0 = Date.now();
+  // What the server says besides the reply (tools used, filter, timing)
+  const api = page.waitForResponse((r) => r.url().endsWith("/api/chat"), { timeout: 120000 })
+    .then((r) => r.json()).catch(() => ({}));
   await page.click("#send");
   await page.waitForFunction((n) => document.querySelectorAll(".bubble.bot:not(.typing)").length > n
     && document.getElementById("chat").dataset.busy === "false", before, { timeout: 120000 });
@@ -74,7 +77,8 @@ async function ask(page, text, slow) {
     const x = b[b.length - 1];
     return { text: x.textContent, error: x.dataset.error || null, retry: x.dataset.retry || "" };
   });
-  return { ...last, ms: Date.now() - t0 };
+  const meta = await api;
+  return { ...last, ms: Date.now() - t0, tools: meta.tools, filtered: meta.filtered, timing: meta.timing };
 }
 
 async function chatCheck(browser, check, { shots = true } = {}) {
@@ -110,6 +114,9 @@ async function chatCheck(browser, check, { shots = true } = {}) {
     }
     if (errors.length) log(`${check.id}: page errors`, errors);
     const result = { pass, reply: r.text, ms: r.ms };
+    if (r.tools?.length) result.tools = r.tools;
+    if (r.filtered) result.filtered = true;
+    if (r.timing) result.timing = r.timing;
     if (check.who !== "invitado" && !loggedIn) result.note = "La página no tiene login: escribe como cualquier visitante.";
     if (r.error) result.note = `Error del chat: ${r.error}`;
     return result;
