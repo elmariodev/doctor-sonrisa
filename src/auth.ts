@@ -43,8 +43,11 @@ export async function login(db: D1Database, email: string, password: string) {
   const hash = await hashPassword(password, user?.password_salt || "00".repeat(16));
   if (!user || !sameText(hash, user.password_hash)) return null;
   const token = hex(crypto.getRandomValues(new Uint8Array(32)).buffer);
+  const t = Math.floor(Date.now() / 1000);
+  // Expired sessions are never read again; clear them now and then
+  if (Math.random() < 0.05) await db.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(t).run();
   await db.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)")
-    .bind(await sha256(token), user.id, Math.floor(Date.now() / 1000) + 7 * DAY).run();
+    .bind(await sha256(token), user.id, t + 7 * DAY).run();
   return { token, name: user.name, role: user.role };
 }
 

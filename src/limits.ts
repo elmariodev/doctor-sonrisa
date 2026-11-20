@@ -3,6 +3,7 @@
 // 1,000 requests and 200,000 tokens a day. The gate stops a little before.
 export const LIMITS = {
   perVisitor: { messages: 15, windowSec: 60 * 60 },
+  loginAttempts: { attempts: 10, windowSec: 15 * 60 },
   perMinute: { calls: 25, tokens: 6000 },
   perDay: { calls: 900, tokens: 180000 },
 };
@@ -24,13 +25,21 @@ async function add(db: D1Database, key: string, by: number, expiresAt: number) {
 const read = async (db: D1Database, key: string) =>
   (await db.prepare("SELECT n FROM counters WHERE key = ?").bind(key).first<{ n: number }>())?.n || 0;
 
-// One more message from this visitor in the current hour; false when over the limit
-export async function countVisitor(db: D1Database, visitor: string) {
-  const t = now(), w = LIMITS.perVisitor.windowSec, start = t - (t % w);
+// One more hit for this key in the current window; ok is false when over the limit
+async function countHit(db: D1Database, key: string, limit: number, windowSec: number) {
+  const t = now(), start = t - (t % windowSec);
   if (Math.random() < 0.05) await db.prepare("DELETE FROM counters WHERE expires_at < ?").bind(t).run();
-  const n = await add(db, `visitor:${visitor}:${start}`, 1, start + w);
-  return { ok: n <= LIMITS.perVisitor.messages, retryAfter: start + w - t };
+  const n = await add(db, `${key}:${start}`, 1, start + windowSec);
+  return { ok: n <= limit, retryAfter: start + windowSec - t };
 }
+
+// One more chat message from this visitor in the current hour
+export const countVisitor = (db: D1Database, visitor: string) =>
+  countHit(db, `visitor:${visitor}`, LIMITS.perVisitor.messages, LIMITS.perVisitor.windowSec);
+
+// One more login attempt from this visitor, so passwords cannot be guessed in bulk
+export const countLogin = (db: D1Database, visitor: string) =>
+  countHit(db, `login:${visitor}`, LIMITS.loginAttempts.attempts, LIMITS.loginAttempts.windowSec);
 
 // The budget of Groq calls and tokens, per model, per minute and per day
 export function budget(db: D1Database) {

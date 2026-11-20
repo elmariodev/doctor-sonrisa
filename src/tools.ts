@@ -52,7 +52,9 @@ export const TOOLS: Record<string, Tool> = {
       description: "Las próximas citas del paciente que tiene la sesión abierta. No recibe ningún dato: el servidor sabe quién es.",
       parameters: { type: "object", properties: {} },
     } },
-    run: async (_args, { db, session }) => ({ paciente: session.name, citas: await appointmentsOf(db, session.patientId!) }),
+    run: async (_args, { db, session }) => session.patientId
+      ? { paciente: session.name, citas: await appointmentsOf(db, session.patientId) }
+      : { error: "Esta cuenta no tiene un paciente asociado." },
   },
 
   agendar: {
@@ -69,9 +71,11 @@ export const TOOLS: Record<string, Tool> = {
       if (!SERVICES.includes(servicio)) return { error: "Ese servicio no existe." };
       if (typeof fecha_hora !== "string" || !openSlot(fecha_hora)) return { error: "Esa hora no está dentro del horario (en punto o y media)." };
       if (fecha_hora <= nowLocal()) return { error: "Esa fecha ya pasó." };
-      const taken = await db.prepare("SELECT 1 FROM appointments WHERE starts_at = ? AND status = 'confirmada'").bind(fecha_hora).first();
-      if (taken) return { error: "Esa hora ya está ocupada. Ofrece otra." };
-      await db.prepare("INSERT INTO appointments (patient_id, starts_at, service) VALUES (?, ?, ?)").bind(session.patientId, fecha_hora, servicio).run();
+      if (!session.patientId) return { error: "Esta cuenta no tiene un paciente asociado." };
+      // The unique index on confirmed slots settles two bookings of the same hour at once
+      const booked = await db.prepare("INSERT INTO appointments (patient_id, starts_at, service) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
+        .bind(session.patientId, fecha_hora, servicio).run();
+      if (!booked.meta.changes) return { error: "Esa hora ya está ocupada. Ofrece otra." };
       return { ok: true, cita: { cuando: spoken(fecha_hora), servicio } };
     },
   },

@@ -7,7 +7,7 @@ import { UpstreamRateLimit, type Message } from "./groq";
 import { getSession, login, logout, sessionCookie, clearCookie } from "./auth";
 import { runAgent } from "./agent";
 import { onTopic, OFF_TOPIC_REPLY } from "./filter";
-import { countVisitor, budget, Busy } from "./limits";
+import { countVisitor, countLogin, budget, Busy } from "./limits";
 import { writeLog, visitorHash, type LogEntry } from "./logs";
 
 export interface Env {
@@ -44,6 +44,10 @@ export default {
     if (route === "POST /api/login") {
       const body: any = await request.json().catch(() => ({}));
       if (typeof body.email !== "string" || typeof body.password !== "string") return json({ error: "bad_request" }, 400);
+      const attempts = await countLogin(env.DB, request.headers.get("CF-Connecting-IP") || "local");
+      if (!attempts.ok) {
+        return json({ error: "limit", message: "Demasiados intentos. Intenta de nuevo en unos minutos.", retryAfter: attempts.retryAfter }, 429, { "Retry-After": String(attempts.retryAfter) });
+      }
       const ok = await login(env.DB, body.email, body.password);
       if (!ok) return json({ error: "login", message: "Correo o contraseña incorrectos." }, 401);
       return json({ role: ok.role, roleName: ROLE_NAME[ok.role], name: ok.name }, 200, { "Set-Cookie": sessionCookie(ok.token) });
