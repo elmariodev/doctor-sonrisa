@@ -1,24 +1,21 @@
-// Devlog of the Doctor Sonrisa bot (video 07). The build agent fills it at
-// each checkpoint. Shape:
+// Devlog of the Doctor Sonrisa bot, filled at each checkpoint. Shape:
 // - project: tab (its name on the tab, short), name, kicker, oneLine (the
 //   idea in one line), repo, stack
 //   (each piece with its role, a note such as its free limit, and its
 //   source), url (optional: shown in the fake browser around a chat).
-// - chapters: how the video groups the checkpoints; each names its ids.
+// - chapters: groups of checkpoints; each names its ids.
 // - checkpoints: one per step, in order. status is "done", "now" or "todo".
 //   goal: one sentence. built: what this layer added. broke: what failed,
 //   with the check id that showed it. fixed: how, with the files and the
 //   few lines of code that show it. media: screenshots and clips in media/.
 //   numbers: each with its source (an eval run or a URL).
 //   decisions: ids from the list below. build: who built it, one row per
-//   model, as printed by scripts/session-usage.py (model, harness, seconds,
-//   tokensIn, tokensOut, toolCalls, apiCostUsd, source).
-// - decisions: id, date, by ("Mario" or "agente"), text, why. status "open"
-//   is a question waiting for Mario; the page does not show it.
-// Everything here is shown to the audience. Mario's lines for camera go in
-// script-notes.md, never here.
+//   model (model, harness, seconds, tokensIn, tokensOut, toolCalls,
+//   apiCostUsd, source), measured from the build session's log.
+// - decisions: id, date, by (the owner or "agente"), text, why. status
+//   "open" is a question still waiting for an answer; the page hides it.
 // - runbook: the commands to run it, label and cmd.
-// The check results do not go here: the evals script writes evals.js.
+// The check results do not go here: "pnpm evals" writes evals.js.
 window.DEVLOG = {
   project: {
     tab: "Agente",
