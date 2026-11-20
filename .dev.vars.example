@@ -1,3 +1,4 @@
-# Copy to .dev.vars (git-ignored) for "wrangler dev". In production use
-# "wrangler secret put GROQ_API_KEY" instead.
+# Copy to .dev.vars (git-ignored) for "wrangler dev" and "pnpm cli docs:tokens".
+# This is the only secret the code reads. In production use
+# "wrangler secret put GROQ_API_KEY" instead. Get a key at console.groq.com/keys.
 GROQ_API_KEY=gsk_your_key_here

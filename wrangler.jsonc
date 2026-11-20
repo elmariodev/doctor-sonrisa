@@ -3,15 +3,17 @@
   "name": "doctor-sonrisa",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-01",
-  // Live at doctor-sonrisa.elmariodev.workers.dev; no preview URLs of old versions
+  // Served on your workers.dev subdomain; no preview URLs of old versions
   "workers_dev": true,
   "preview_urls": false,
   // The clinic's page and chat; /api/* goes to the Worker
   "assets": { "directory": "public", "run_worker_first": ["/api/*"] },
-  // Patients, appointments, users and sessions. Local in development; the id is
-  // the deployed database ("wrangler d1 create doctor-sonrisa" for your own).
+  // Patients, appointments, users, sessions, counters and logs. "wrangler dev"
+  // uses a local copy, so the placeholder id works locally. Before deploying,
+  // run "pnpm exec wrangler d1 create doctor-sonrisa" and paste the
+  // "database_id" it prints here.
   "d1_databases": [
-    { "binding": "DB", "database_name": "doctor-sonrisa", "database_id": "215eaa30-9ade-435c-a40c-d27f6695f088", "migrations_dir": "db/migrations" }
+    { "binding": "DB", "database_name": "doctor-sonrisa", "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID", "migrations_dir": "db/migrations" }
   ],
   // RAG: embeddings with bge-m3 and the "doctor-sonrisa" index (1024 dimensions, cosine).
   // Both run on Cloudflare even in "wrangler dev" ("remote": true).
