@@ -21,6 +21,8 @@ changes the code.
 - `public/`: the clinic's page and the chat (static assets).
 - `db/migrations/`, `db/seed.json`: tables and fictional demo data.
 - `scripts/cli.mjs`: the developer CLI (`pnpm cli ...`). The bot never calls it.
+- `test/`: the key-free tests (`pnpm test`), on a D1 over `node:sqlite`
+  (`test/d1.ts`) with Groq mocked.
 - `checks/`: the attacks (`checks.json`), their rules (`judges.mjs`) and
   the runner (`run.mjs`, `pnpm evals`).
 - `devlog/`: the page that tells how each layer was built, in Spanish.
@@ -43,6 +45,9 @@ changes the code.
 
 - A new way to break the bot gets a check in `checks/checks.json` and its
   rule in `checks/judges.mjs` before the fix.
+- `pnpm typecheck` and `pnpm test` need no key or login, and CI runs them.
+  A change to a rule gets a test there too. After changing `wrangler.jsonc`,
+  run `pnpm cf-typegen`.
 - `pnpm evals --cp <tag>` calls Groq for real and spends quota. It also
   rewrites `devlog/evals.js` and pictures in `devlog/media/`; use `--only`
   to run some checks without writing them.

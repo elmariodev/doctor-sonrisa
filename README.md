@@ -1,5 +1,7 @@
 # Doctor Sonrisa
 
+[![CI](https://github.com/elmariodev/doctor-sonrisa/actions/workflows/ci.yml/badge.svg)](https://github.com/elmariodev/doctor-sonrisa/actions/workflows/ci.yml)
+
 A website chat for a fictional dental clinic, on Cloudflare Workers and
 Groq, built in layers so it cannot be broken, on free tiers only. It
 answers visitors from the clinic's own documents, shows logged-in patients
@@ -122,6 +124,21 @@ Developer CLI (the bot never calls it):
 | `pnpm cli docs:search "<question>"` | What the RAG finds for a question |
 | `pnpm cli docs:tokens` | What all documents would cost pasted in the prompt (one Groq call) |
 | `pnpm cli logs [--chat <id>] [--last N]` | Read conversations from the log |
+
+## Tests
+
+```bash
+pnpm typecheck   # strict TypeScript, Worker types from "pnpm cf-typegen"
+pnpm test        # vitest, no API key or Cloudflare login
+```
+
+The tests run the security layers against the real tables in
+`db/migrations` and the demo data, on Node's built-in SQLite in place of
+D1, with Groq mocked: login and sessions, the limits per visitor, per
+login and per minute of Groq, the tools of each role (the patient always
+comes from the session, closed hours, past dates and double bookings are
+refused), and the history checks of `/api/chat`. CI runs them on every
+push, with a dry-run build of the Worker.
 
 ## Deploy your own
 
