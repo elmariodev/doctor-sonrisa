@@ -9,7 +9,8 @@ export type ToolContext = { db: D1Database; session: Session; env: { AI: Ai; VEC
 type Tool = {
   roles: Role[];
   schema: { type: "function"; function: { name: string; description: string; parameters: Record<string, unknown> } };
-  run: (args: any, ctx: ToolContext) => Promise<unknown>;
+  // The arguments come from the model: any JSON, checked by each tool
+  run: (args: Record<string, unknown>, ctx: ToolContext) => Promise<unknown>;
 };
 
 const SERVICES = ["valoración", "limpieza", "resina", "blanqueamiento", "control de ortodoncia", "extracción", "endodoncia"];
@@ -68,7 +69,7 @@ export const TOOLS: Record<string, Tool> = {
       }, required: ["fecha_hora", "servicio"] },
     } },
     run: async ({ fecha_hora, servicio }, { db, session }) => {
-      if (!SERVICES.includes(servicio)) return { error: "Ese servicio no existe." };
+      if (typeof servicio !== "string" || !SERVICES.includes(servicio)) return { error: "Ese servicio no existe." };
       if (typeof fecha_hora !== "string" || !openSlot(fecha_hora)) return { error: "Esa hora no está dentro del horario (en punto o y media)." };
       if (fecha_hora <= nowLocal()) return { error: "Esa fecha ya pasó." };
       if (!session.patientId) return { error: "Esta cuenta no tiene un paciente asociado." };

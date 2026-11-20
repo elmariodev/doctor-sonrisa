@@ -10,23 +10,23 @@ import { onTopic, OFF_TOPIC_REPLY } from "./filter";
 import { countVisitor, countLogin, budget, Busy } from "./limits";
 import { writeLog, visitorHash, type LogEntry } from "./logs";
 
-export interface Env {
-  GROQ_API_KEY: string;
-  DB: D1Database;
-  AI: Ai;
-  VECTORIZE: VectorizeIndex;
-}
+// The bindings in wrangler.jsonc ("pnpm cf-typegen" writes worker-configuration.d.ts)
+export type Env = Cloudflare.Env;
 
 const json = (data: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", ...headers } });
 
+// What the browser sends; every field is checked before use
+type LoginBody = { email?: unknown; password?: unknown };
+type ChatBody = { messages?: unknown; chatId?: unknown };
+
 // Only plain user and assistant turns from the browser, short and few
-function readHistory(body: any): Message[] | null {
-  const list = body?.messages;
+function readHistory(body: ChatBody | null): Message[] | null {
+  const list: unknown = body?.messages;
   if (!Array.isArray(list) || list.length === 0 || list.length > 20) return null;
-  const clean = list.map((m: any) => ({ role: m?.role, content: m?.content }));
+  const clean = list.map((m: { role?: unknown; content?: unknown } | null) => ({ role: m?.role, content: m?.content }));
   const ok = clean.every((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.length <= 1000);
-  return ok && clean[clean.length - 1].role === "user" ? clean : null;
+  return ok && clean[clean.length - 1].role === "user" ? (clean as Message[]) : null;
 }
 
 const ROLE_NAME = { guest: "invitado", user: "paciente", admin: "admin" } as const;
@@ -42,7 +42,7 @@ export default {
     }
 
     if (route === "POST /api/login") {
-      const body: any = await request.json().catch(() => ({}));
+      const body = await request.json<LoginBody>().catch((): LoginBody => ({}));
       if (typeof body.email !== "string" || typeof body.password !== "string") return json({ error: "bad_request" }, 400);
       const attempts = await countLogin(env.DB, request.headers.get("CF-Connecting-IP") || "local");
       if (!attempts.ok) {
@@ -59,13 +59,13 @@ export default {
     }
 
     if (route === "POST /api/chat") {
-      const body: any = await request.json().catch(() => null);
+      const body = await request.json<ChatBody | null>().catch(() => null);
       const history = readHistory(body);
       if (!history) return json({ error: "bad_request" }, 400);
       const session = await getSession(request, env.DB);
       // Who is the visitor: the IP Cloudflare saw (a client cannot set it in production)
       const ip = request.headers.get("CF-Connecting-IP") || "local";
-      const chatId = typeof body.chatId === "string" && /^[a-z0-9-]{8,64}$/i.test(body.chatId) ? body.chatId : crypto.randomUUID();
+      const chatId = typeof body?.chatId === "string" && /^[a-z0-9-]{8,64}$/i.test(body.chatId) ? body.chatId : crypto.randomUUID();
       const t0 = Date.now();
       // Every outcome is logged after the response is sent
       const done = (res: Response, entry: Partial<LogEntry> & { outcome: LogEntry["outcome"] }) => {

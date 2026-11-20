@@ -6,11 +6,16 @@
   "packageManager": "pnpm@12.18.0",
   "devDependencies": {
     "playwright": "1.65.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.1",
     "wrangler": "4.161.0"
   },
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "evals": "node checks/run.mjs",
-    "cli": "node scripts/cli.mjs"
+    "cli": "node scripts/cli.mjs",
+    "typecheck": "tsc -p .",
+    "test": "vitest run",
+    "cf-typegen": "wrangler types"
   }
 }

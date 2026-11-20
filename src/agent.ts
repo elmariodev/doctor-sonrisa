@@ -32,7 +32,7 @@ export async function runAgent(env: Env, session: Session, history: Message[], b
       // The role check lives here, in code: a tool outside the role never runs
       if (!tool || !tool.roles.includes(session.role)) result = { error: "Herramienta no disponible para este usuario." };
       else {
-        let args = {};
+        let args: Record<string, unknown> = {};
         try { args = JSON.parse(call.function.arguments || "{}"); } catch { result = { error: "Argumentos inválidos." }; }
         result ??= await tool.run(args, { db: env.DB, session, env, sources });
       }
