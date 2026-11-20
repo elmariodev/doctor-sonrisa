@@ -8,7 +8,9 @@ answers visitors from the clinic's own documents, shows logged-in patients
 their own appointments and nothing else, refuses off-topic work, and stops
 before anyone spends the free quota.
 
-![The clinic's page with the chat](devlog/media/cp-7-pagina.png)
+![Three layers in action: cp-0 leaks another patient's appointments, cp-2 shows a patient only their own, cp-3 refuses homework](devlog/media/demo.gif)
+
+The clips are the real attack runs from `pnpm evals`, recorded in a browser.
 
 The UI and the bot speak Spanish (the clinic is in Bogota); the code and
 docs are in English.
